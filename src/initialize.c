@@ -58,6 +58,8 @@ void Initialize( void )
 
 	fclose( pF );
 
+	printf("Total number of cells in computational domain: %d\n", LEN*HIG*DEP );
+
 	/*--- other initializatons ---*/
 		/* complexes with deltas */
 	deltaT_X = deltaT / deltaX;     deltaT_Y = deltaT / deltaY;     deltaT_Z = deltaT / deltaZ;
