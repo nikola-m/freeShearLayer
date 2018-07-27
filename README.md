@@ -20,6 +20,7 @@ Available soon, using MPI.
 
 ```
 cd src
+mkdir obj
 make
 cd ..
 ./run
