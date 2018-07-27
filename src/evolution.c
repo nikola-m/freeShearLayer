@@ -1,13 +1,15 @@
 /*
 *  EVOLUTION  
 * Computes new (or intermediate) values of conservative variables
-* using two-stage TVD Runge-Kutta algorithm
+* using two- or three-stage TVD Runge-Kutta algorithms.
 */
 #include "type.h"
 #include "def.h"      /* Definitions, parameters */
 #include "global.h"   /* global variables */
 
 #include "evolution.h"
+
+
 
 void Evolution( int Stage )
 {
@@ -92,3 +94,269 @@ void Evolution( int Stage )
 	} /* end else Second stage */
 
 } /* end Evolution() */
+
+
+
+/* FIXME
+
+  Everything below is a refactoring of this part of the code to enable switching between a few Runge-Kutta time-stepping methods. 
+  The plan is that all satisfy TVD (also used term is SSP - Strong Stability Preserving ) Runge-Kutta schemes.
+
+*/
+
+
+// void Evolution( int numStages, int Stage ) {
+
+//   switch ( numStages ) {
+
+//     case 2:
+// 	  Evolution_twoStage_TVD_RK( Stage );
+
+//     case 3:
+// 	  Evolution_threeStage_TVD_RK( Stage );
+
+// 	default:
+// 	  printf("Non existing type of time-stepping algorithm!\n");
+
+//   }
+
+// }
+
+// void Evolution_threeStage_TVD_RK( int Stage ){
+
+//   real one_third = 1./3.
+//   real two_thirds = 2./3.
+
+//   switch (Stage) {
+   
+//   case 1:
+//     // for (_i = 0, i = 1; i < LENN; i++, _i++) {
+//     //   U1p[i] = U1[i] + deltaT_X * (F1[_i] - F1[i]);
+//     //   U2p[i] = U2[i] + deltaT_X * (F2[_i] - F2[i]);
+//     //   U3p[i] = U3[i] + deltaT_X * (F3[_i] - F3[i]);
+//     // } /* end for() */
+
+// 	for( i = 1, _i = 0; i < LENN; i++, _i++ ) {
+// 		for( j = 1, _j = 0; j < HIGG; j++, _j++ ) { /* indices i-1, k-1 etc */
+// 			for( k = 1, _k = 0; k < DEPP; k++, _k++ ) {
+
+// 				U1p[i][j][k] = U1[i][j][k] 
+// 				               + deltaT_X * ( Fx1[_i][_j][_k] - Fx1[i][_j][_k] )
+// 							   + deltaT_Y * ( Fy1[_i][_j][_k] - Fy1[_i][j][_k] )
+// 							   + deltaT_Z * ( Fz1[_i][_j][_k] - Fz1[_i][_j][k] );
+// 				U2p[i][j][k] = U2[i][j][k] 
+// 				               + deltaT_X * ( Fx2[_i][_j][_k] - Fx2[i][_j][_k] )
+// 							   + deltaT_Y * ( Fy2[_i][_j][_k] - Fy2[_i][j][_k] )
+// 							   + deltaT_Z * ( Fz2[_i][_j][_k] - Fz2[_i][_j][k] );
+// 				U3p[i][j][k] = U3[i][j][k] 
+// 				               + deltaT_X * ( Fx3[_i][_j][_k] - Fx3[i][_j][_k] )
+// 							   + deltaT_Y * ( Fy3[_i][_j][_k] - Fy3[_i][j][_k] )
+// 							   + deltaT_Z * ( Fz3[_i][_j][_k] - Fz3[_i][_j][k] );
+// 				U4p[i][j][k] = U4[i][j][k] 
+// 				               + deltaT_X * ( Fx4[_i][_j][_k] - Fx4[i][_j][_k] )
+// 							   + deltaT_Y * ( Fy4[_i][_j][_k] - Fy4[_i][j][_k] )
+// 							   + deltaT_Z * ( Fz4[_i][_j][_k] - Fz4[_i][_j][k] );
+// 				U5p[i][j][k] = U5[i][j][k] 
+// 				               + deltaT_X * ( Fx5[_i][_j][_k] - Fx5[i][_j][_k] )
+// 							   + deltaT_Y * ( Fy5[_i][_j][_k] - Fy5[_i][j][_k] )
+// 							   + deltaT_Z * ( Fz5[_i][_j][_k] - Fz5[_i][_j][k] );
+
+// 			 } /* end for */
+// 		} /* end for */
+// 	} /* end for */  
+
+//     // /* next stage */		 
+//     // Stage = 2, u1 = U1p, u2 = U2p, u3 = U3p;
+
+// 	/* next stage */
+// 	Stage = 2;
+// 	U1_ = U1p, U2_ = U2p, U3_ = U3p, U4_ = U4p, U5_ = U5p;
+//     break;
+		 
+//   case 2:
+//     // for ( _i = 0, i = 1; i <= LEN; i++, _i++) {
+//     //   U1p[i] = 0.75 * U1[i] + 0.25 * (U1p[i] + deltaT_X * (F1[_i] - F1[i]));
+//     //   U2p[i] = 0.75 * U2[i] + 0.25 * (U2p[i] + deltaT_X * (F2[_i] - F2[i]));
+//     //   U3p[i] = 0.75 * U3[i] + 0.25 * (U3p[i] + deltaT_X * (F3[_i] - F3[i]));
+//     // } /* end for() */
+
+
+// 	for( i = 1, _i = 0; i < LENN; i++, _i++ ) {
+// 		for( j = 1, _j = 0; j < HIGG; j++, _j++ ) {
+// 			for( k = 1, _k = 0; k < DEPP; k++, _k++ ) {
+
+// 				U1[i][j][k] = 0.75 * U1[i][j][k] + 0.25 * (U1p[i][j][k]
+// 							 + deltaT_X * ( Fx1[_i][_j][_k] - Fx1[i][_j][_k] )
+// 							 + deltaT_Y * ( Fy1[_i][_j][_k] - Fy1[_i][j][_k] )
+// 							 + deltaT_Z * ( Fz1[_i][_j][_k] - Fz1[_i][_j][k] )
+// 							);
+// 				U2[i][j][k] = 0.75 * U2[i][j][k] + 0.25 * (U2p[i][j][k]
+// 							 + deltaT_X * ( Fx2[_i][_j][_k] - Fx2[i][_j][_k] )
+// 							 + deltaT_Y * ( Fy2[_i][_j][_k] - Fy2[_i][j][_k] )
+// 							 + deltaT_Z * ( Fz2[_i][_j][_k] - Fz2[_i][_j][k] )
+// 							);
+// 				U3[i][j][k] = 0.75 * U3[i][j][k] + 0.25 * (U3p[i][j][k]
+// 							 + deltaT_X * ( Fx3[_i][_j][_k] - Fx3[i][_j][_k] )
+// 							 + deltaT_Y * ( Fy3[_i][_j][_k] - Fy3[_i][j][_k] )
+// 							 + deltaT_Z * ( Fz3[_i][_j][_k] - Fz3[_i][_j][k] )
+// 							);
+// 				U4[i][j][k] = 0.75 * U4[i][j][k] + 0.25 * (U4p[i][j][k]
+// 							 + deltaT_X * ( Fx4[_i][_j][_k] - Fx4[i][_j][_k] )
+// 							 + deltaT_Y * ( Fy4[_i][_j][_k] - Fy4[_i][j][_k] )
+// 							 + deltaT_Z * ( Fz4[_i][_j][_k] - Fz4[_i][_j][k] )
+// 							);
+// 				U5[i][j][k] = 0.75 * U5[i][j][k] + 0.25 * (U5p[i][j][k]
+// 							 + deltaT_X * ( Fx5[_i][_j][_k] - Fx5[i][_j][_k] )
+// 							 + deltaT_Y * ( Fy5[_i][_j][_k] - Fy5[_i][j][_k] )
+// 							 + deltaT_Z * ( Fz5[_i][_j][_k] - Fz5[_i][_j][k] )
+// 							);
+
+// 			 } /* end for */
+// 		} /* end for */
+// 	} /* end for */
+
+//     /* next stage */		 
+//     Stage = 3;
+
+//     break;
+		 
+//   default:
+
+//     // for (_i = 0, i = 1; i <= LEN; i++, _i++) {
+//     //   U1[i] = 0.33333333333 * U1[i] + 0.66666666667 * (U1p[i] + deltaT_X * (F1[_i] - F1[i]));
+//     //   U2[i] = 0.33333333333 * U2[i] + 0.66666666667 * (U2p[i] + deltaT_X * (F2[_i] - F2[i]));
+//     //   U3[i] = 0.33333333333 * U3[i] + 0.66666666667 * (U3p[i] + deltaT_X * (F3[_i] - F3[i]));
+//     // } /* end for() */
+
+
+// 	for( i = 1, _i = 0; i < LENN; i++, _i++ ) {
+// 		for( j = 1, _j = 0; j < HIGG; j++, _j++ ) {
+// 			for( k = 1, _k = 0; k < DEPP; k++, _k++ ) {
+
+// 				U1[i][j][k] = one_third * U1[i][j][k] + two_thirds * (U1p[i][j][k]
+// 							 + deltaT_X * ( Fx1[_i][_j][_k] - Fx1[i][_j][_k] )
+// 							 + deltaT_Y * ( Fy1[_i][_j][_k] - Fy1[_i][j][_k] )
+// 							 + deltaT_Z * ( Fz1[_i][_j][_k] - Fz1[_i][_j][k] )
+// 							);
+// 				U2[i][j][k] = one_third * U2[i][j][k] + two_thirds * (U2p[i][j][k]
+// 							 + deltaT_X * ( Fx2[_i][_j][_k] - Fx2[i][_j][_k] )
+// 							 + deltaT_Y * ( Fy2[_i][_j][_k] - Fy2[_i][j][_k] )
+// 							 + deltaT_Z * ( Fz2[_i][_j][_k] - Fz2[_i][_j][k] )
+// 							);
+// 				U3[i][j][k] = one_third * U3[i][j][k] + two_thirds * (U3p[i][j][k]
+// 							 + deltaT_X * ( Fx3[_i][_j][_k] - Fx3[i][_j][_k] )
+// 							 + deltaT_Y * ( Fy3[_i][_j][_k] - Fy3[_i][j][_k] )
+// 							 + deltaT_Z * ( Fz3[_i][_j][_k] - Fz3[_i][_j][k] )
+// 							);
+// 				U4[i][j][k] = one_third * U4[i][j][k] + two_thirds * (U4p[i][j][k]
+// 							 + deltaT_X * ( Fx4[_i][_j][_k] - Fx4[i][_j][_k] )
+// 							 + deltaT_Y * ( Fy4[_i][_j][_k] - Fy4[_i][j][_k] )
+// 							 + deltaT_Z * ( Fz4[_i][_j][_k] - Fz4[_i][_j][k] )
+// 							);
+// 				U5[i][j][k] = one_third * U5[i][j][k] + two_thirds * (U5p[i][j][k]
+// 							 + deltaT_X * ( Fx5[_i][_j][_k] - Fx5[i][_j][_k] )
+// 							 + deltaT_Y * ( Fy5[_i][_j][_k] - Fy5[_i][j][_k] )
+// 							 + deltaT_Z * ( Fz5[_i][_j][_k] - Fz5[_i][_j][k] )
+// 							);
+
+// 			 } /* end for */
+// 		} /* end for */
+// 	} /* end for */
+
+//     /* next stage */
+//     // Stage = 1, u1 = U1, u2 = U2, u3 = U3;
+
+//     Stage = 1;
+// 	U1_ = U1, U2_ = U2, U3_ = U3, U4_ = U4, U5_ = U5;				
+
+//     break;
+		 
+//   } /* end switch() */
+
+// } /* end Evolution() */
+
+
+// void Evolution_twoStage_TVD_RK( int Stage )
+// {
+// /*register*/ unsigned i, j, k, _i, _j, _k;
+
+// 	if( Stage == 1 ) {
+
+// 		for( i = 1, _i = 0; i < LENN; i++, _i++ ) {
+// 			for( j = 1, _j = 0; j < HIGG; j++, _j++ ) { /* indices i-1, k-1 etc */
+// 				for( k = 1, _k = 0; k < DEPP; k++, _k++ ) {
+
+// 					U1p[i][j][k] = U1[i][j][k] 
+// 					               + deltaT_X * ( Fx1[_i][_j][_k] - Fx1[i][_j][_k] )
+// 								   + deltaT_Y * ( Fy1[_i][_j][_k] - Fy1[_i][j][_k] )
+// 								   + deltaT_Z * ( Fz1[_i][_j][_k] - Fz1[_i][_j][k] );
+// 					U2p[i][j][k] = U2[i][j][k] 
+// 					               + deltaT_X * ( Fx2[_i][_j][_k] - Fx2[i][_j][_k] )
+// 								   + deltaT_Y * ( Fy2[_i][_j][_k] - Fy2[_i][j][_k] )
+// 								   + deltaT_Z * ( Fz2[_i][_j][_k] - Fz2[_i][_j][k] );
+// 					U3p[i][j][k] = U3[i][j][k] 
+// 					               + deltaT_X * ( Fx3[_i][_j][_k] - Fx3[i][_j][_k] )
+// 								   + deltaT_Y * ( Fy3[_i][_j][_k] - Fy3[_i][j][_k] )
+// 								   + deltaT_Z * ( Fz3[_i][_j][_k] - Fz3[_i][_j][k] );
+// 					U4p[i][j][k] = U4[i][j][k] 
+// 					               + deltaT_X * ( Fx4[_i][_j][_k] - Fx4[i][_j][_k] )
+// 								   + deltaT_Y * ( Fy4[_i][_j][_k] - Fy4[_i][j][_k] )
+// 								   + deltaT_Z * ( Fz4[_i][_j][_k] - Fz4[_i][_j][k] );
+// 					U5p[i][j][k] = U5[i][j][k] 
+// 					               + deltaT_X * ( Fx5[_i][_j][_k] - Fx5[i][_j][_k] )
+// 								   + deltaT_Y * ( Fy5[_i][_j][_k] - Fy5[_i][j][_k] )
+// 								   + deltaT_Z * ( Fz5[_i][_j][_k] - Fz5[_i][_j][k] );
+
+// 				 } /* end for */
+// 			} /* end for */
+// 		} /* end for */
+
+// 		/* next stage */
+// 		Stage = 2;
+// 		U1_ = U1p, U2_ = U2p, U3_ = U3p, U4_ = U4p, U5_ = U5p;
+
+// 	} /* end if() First stage */
+// 	else {
+
+// 		for( i = 1, _i = 0; i < LENN; i++, _i++ ) {
+// 			for( j = 1, _j = 0; j < HIGG; j++, _j++ ) {
+// 				for( k = 1, _k = 0; k < DEPP; k++, _k++ ) {
+
+// 					U1[i][j][k] = 0.5 * ( U1[i][j][k] + U1p[i][j][k]
+// 								 + deltaT_X * ( Fx1[_i][_j][_k] - Fx1[i][_j][_k] )
+// 								 + deltaT_Y * ( Fy1[_i][_j][_k] - Fy1[_i][j][_k] )
+// 								 + deltaT_Z * ( Fz1[_i][_j][_k] - Fz1[_i][_j][k] )
+// 								);
+// 					U2[i][j][k] = 0.5 * ( U2[i][j][k] + U2p[i][j][k]
+// 								 + deltaT_X * ( Fx2[_i][_j][_k] - Fx2[i][_j][_k] )
+// 								 + deltaT_Y * ( Fy2[_i][_j][_k] - Fy2[_i][j][_k] )
+// 								 + deltaT_Z * ( Fz2[_i][_j][_k] - Fz2[_i][_j][k] )
+// 								);
+// 					U3[i][j][k] = 0.5 * ( U3[i][j][k] + U3p[i][j][k]
+// 								 + deltaT_X * ( Fx3[_i][_j][_k] - Fx3[i][_j][_k] )
+// 								 + deltaT_Y * ( Fy3[_i][_j][_k] - Fy3[_i][j][_k] )
+// 								 + deltaT_Z * ( Fz3[_i][_j][_k] - Fz3[_i][_j][k] )
+// 								);
+// 					U4[i][j][k] = 0.5 * ( U4[i][j][k] + U4p[i][j][k]
+// 								 + deltaT_X * ( Fx4[_i][_j][_k] - Fx4[i][_j][_k] )
+// 								 + deltaT_Y * ( Fy4[_i][_j][_k] - Fy4[_i][j][_k] )
+// 								 + deltaT_Z * ( Fz4[_i][_j][_k] - Fz4[_i][_j][k] )
+// 								);
+// 					U5[i][j][k] = 0.5 * ( U5[i][j][k] + U5p[i][j][k]
+// 								 + deltaT_X * ( Fx5[_i][_j][_k] - Fx5[i][_j][_k] )
+// 								 + deltaT_Y * ( Fy5[_i][_j][_k] - Fy5[_i][j][_k] )
+// 								 + deltaT_Z * ( Fz5[_i][_j][_k] - Fz5[_i][_j][k] )
+// 								);
+
+// 				 } /* end for */
+// 			} /* end for */
+// 		} /* end for */
+
+// 		/* next stage */
+// 		Stage = 1;
+// 		U1_ = U1, U2_ = U2, U3_ = U3, U4_ = U4, U5_ = U5;
+
+// 	} /* end else Second stage */
+
+// } /* end Evolution() */
+
