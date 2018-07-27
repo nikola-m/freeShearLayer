@@ -2,7 +2,7 @@
 
 A CFD code based on the Finite Volume Method discretisation of Navier-Stokes equations for simulation of compressible shear layer.
 
-The code was originally written by Andrei Chernousov back in early 2000's and published on his website. The basic code had several versions, because each simulation case (mesh, initial and boundary conditions, etc.) was individually hardcoded. There were no efforts as I am aware to further develop these so this repository has intention of changing that. We have already made some basic changes to the code, on the side of the algorithm itself and regarding the organisation of the project.
+The code was originally written by Andrei Chernousov back in early 2000's and published on his website (still available [here](http://www.geocities.ws/MotorCity/Pit/9939/freecfd.htm) ). The basic code had several versions, because each simulation case (mesh, initial and boundary conditions, etc.) was individually hardcoded. There were no efforts as I am aware to further develop these so this repository has intention of changing that. We have already made some basic changes to the code, on the side of the algorithm itself and regarding the organisation of the project.
 
 Further we will include other cases and make code more general.
 
@@ -12,7 +12,7 @@ For now, the algorithm is based on Finite Volume Method discretisation of Navier
 
 Code is written in ANSI C language.
 
-### Paralelisation
+### Parallelisation
 
 Available soon, using MPI.
 
