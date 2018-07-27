@@ -115,6 +115,8 @@ int main( void )
 {
 
 	int counter = 0;
+    float totalTime = 0.;
+
 	continFlag = 1; /* continuation flag (to be changed by SIGINT handler) */
 
 
@@ -137,10 +139,11 @@ int main( void )
 
 		/*--- Check exit conditions ---*/
 		if( step == numstep || !continFlag  ) break;
-		printf( "%d\n", ++step );
 
         /* Check Courant number at every timestep */
 		checkCoNum();
+
+		printf( "Timestep no.: %d, total time: %f sec.\n", ++step, (totalTime+=deltaT) );
 
 		/*--- Define disturbing block */
 		if( counter > 0 ) counter--;
