@@ -45,7 +45,8 @@ void Initialize( void )
 				case 17:  printf( "Ns_min = %d\n",  Ns_min = atoi( str ) ); break;
 				case 18:  printf( "Nst    = %d\n",  Nst    = atoi( str ) ); break;
 				case 19:  printf( "f_step = %d\n",  f_step = atoi( str ) ); break;
-				case 20:  printf( "maxCoNum = %f\n", maxCoNum = atof( str ) ); break;
+				case 20:  printf( "nStages = %d\n", nStages  = atoi( str ) ); break;
+				case 21:  printf( "maxCoNum = %f\n",maxCoNum = atof( str ) ); break;
 				default: break;
 			} /* end switch */
 			i++;
@@ -54,7 +55,7 @@ void Initialize( void )
 		   puts( "Error while reading \"layer2.ini\" file" );
 		   exit( -1 );
 		}
-	} while( i < 21 );
+	} while( i < 22 );
 
 	fclose( pF );
 

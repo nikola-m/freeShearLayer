@@ -69,6 +69,7 @@ real/* transport coefficients */
 	Cs, CsDD;
 
 real maxCoNum;  /* maximum Courant number */
+int nStages;    /* number of stages of Runge-Kutta algorithm */
 
 unsigned
    step,    /* current time step */
@@ -162,15 +163,15 @@ int main( void )
 		for( Stage = 1; Stage <= nStages; Stage++){
 
 			/*--- BC in ghost cells ---*/
-			BounCondInGhostCells( Stage );
+			BounCondInGhostCells( );
 			/*--- Parameters at the cell boundaries ---*/
-			Reconstruction( Stage );
+			Reconstruction( );
 			/*--- BC at cell boundaries at the domain boundary ---*/
-			BounCondOnInterfaces( Stage );
+			BounCondOnInterfaces( );
 			/*--- Fluxes ---*/
-			Fluxes( Stage );
+			Fluxes( );
 			/*--- Evolution ---*/
-			Evolution( Stage );
+			Evolution( nStages, Stage );
 
 		}
 

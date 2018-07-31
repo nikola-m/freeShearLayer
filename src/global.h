@@ -40,6 +40,7 @@ extern real
 	Cs, CsDD;
 
 extern real maxCoNum;  /* maximum Courant number */
+extern int nStages; /* number of stages of Runge-Kutta algorithm */
 
 extern unsigned
    step,    /* current time step */

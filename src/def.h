@@ -40,7 +40,4 @@
 #define C1 0.333333333333333 // 1/3
 #define C2 0.166666666666667 // 1/6
 
-/* Number of stages of Runge-Kutta method */
-#define nStages 2
-
 #endif
