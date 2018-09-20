@@ -176,7 +176,7 @@ real
 				kk = bb; bb = cc; cc = dd; dd = kk;
 				mm = V*ll;          /* V/(2.*C) */
 				/* differencing of the conservative variables */
-					/* forvard */
+					/* forward */
 				m1 = U1_[i][j_][k] - u1;
 				m2 = U3_[i][j_][k] - u3; /* U3[i][j+1][k] ( U->V, V->W, W->U : 3-4-2 ) */
 				m3 = U4_[i][j_][k] - u4; /* U4[i][j+1][k] */
@@ -343,3 +343,136 @@ real
 		} /* end for */
 	} /* end for */
 } /* end Reconstruction() */
+
+
+
+/* 
+   TODO - Implementation of MUSCL sdcheme as described in 
+   Bruno Chaouat - An efficient numerical method for RANS/LES turbulent simulations using subfilter scale stress transport equations 
+*/ 
+
+//    void Reconstruction_MUSCL( void )
+// {
+// /*register*/ real kk;
+// /*register*/ unsigned i, j, k, _i, _j, _k, i_, j_, k_;
+
+
+// real
+// 	/* finite differences of conservative variables */
+//       m1, m2, m3, m4, m5,
+// 	  w1, w2, w3, w4, w5,
+// 	/* finite differences of characteristic variables */
+// 	  M1, M2, M3, M4, M5,
+// 	  W1, W2, W3, W4, W5,
+// 	/* modified finite differences of characteristic variables */
+// 	 _M1, _M2, _M3, _M4, _M5,
+// 	 _W1, _W2, _W3, _W4, _W5,
+// 	/* transformation matrix [S-1] */
+// 	 S11, S12,
+// 	 S41, S42,
+// 	 S51, S52,
+// 	/* inverted transformation matrix [S-1] */
+// 	 _S24, _S25,
+//      _S54, _S55,
+// 	/* subsidiary */
+// 	 aa, bb, cc, dd, ee, ff, gg, hh, ll, mm, nn,
+// 	 u_hh, v_hh, w_hh, u_ee, v_ee, w_ee,
+// 	 k1, k2, k3, k4, k5;
+
+
+// 	for( i = 1, _i = 0, i_ = 2; i < LENN; i++, _i++, i_++ ) {
+// 		for( j = 1, _j = 0, j_ = 2; j < HIGG; j++, _j++, j_++ ) {
+// 			for( k = 1, _k = 0, k_ = 2; k < DEPP; k++, _k++, k_++ ) {
+				
+// 				/*---  X  ---*/
+
+// 				/* at cell centroid */
+
+// 				// Conservative variables at cell centroid
+// 				u1 = U1_[i][j][k];
+// 				u2 = U2_[i][j][k];
+// 				u3 = U3_[i][j][k];
+// 				u4 = U4_[i][j][k];
+// 				u5 = U5_[i][j][k];
+
+// 				// Primitive variables at cell centroid
+// 				R =   1. / u1;   /* 1 / R  */
+// 				U =   u2 * R;
+// 				V =   u3 * R;
+// 				W =   u4 * R;
+// 				P = ( u5 - 0.5 * ( u2 * u2 + u3 * u3 + u4 * u4 ) * R ) * K_1;
+// 				C = sqrt( K * P * R );
+
+// 				/* Geometry parameters */
+// 				xaL = 
+// 				xaR = 
+// 				xbL = 
+// 				xbR = 
+// 				xc = (i-1)*deltaX + 0.5*deltaX;
+// 				yc = (j-1)*deltaY + 0.5*deltaY;
+// 				zc = (k-1)*deltaZ + 0.5*deltaZ;
+// 				/* differencing of the conservative variables */
+
+// 				/* forward */
+// 				m1 = U1_[i_][j][k] - u1;
+// 				m2 = U2_[i_][j][k] - u2;
+// 				m3 = U3_[i_][j][k] - u3;
+// 				m4 = U4_[i_][j][k] - u4;
+// 				m5 = U5_[i_][j][k] - u5;
+
+// 				/* backward */
+// 				w1 = u1 - U1_[_i][j][k];
+// 				w2 = u2 - U2_[_i][j][k];
+// 				w3 = u3 - U3_[_i][j][k];
+// 				w4 = u4 - U4_[_i][j][k];
+// 				w5 = u5 - U5_[_i][j][k];
+
+//                 /* Value at interface using linear interpolation (centered differencing scheme) */ 
+//                 u1c = xaR*u1 + xaL*U1_[i_][j][k]
+//                 u2c = xaR*u2 + xaL*U2_[i_][j][k]
+//                 u3c = xaR*u3 + xaL*U3_[i_][j][k]
+//                 u4c = xaR*u4 + xaL*U4_[i_][j][k]
+//                 u5c = xaR*u5 + xaL*U5_[i_][j][k]
+
+//                 /* Value at interface using cubic interpolation trough four points (i-1,j,k), (i,j,k), (i+1,j,k), (i+2,j,k) */ 
+//                 dd = 1. / ( Dximjk + Dxijk )
+//                 u1Lst = dd * (-Dxijk*U1_[_i][j][k] + ( Dximjk + 2*Dxijk )*u1 )
+//                 u2Lst = dd * (-Dxijk*U2_[_i][j][k] + ( Dximjk + 2*Dxijk )*u2 )
+//                 u3Lst = dd * (-Dxijk*U3_[_i][j][k] + ( Dximjk + 2*Dxijk )*u3 )
+//                 u4Lst = dd * (-Dxijk*U4_[_i][j][k] + ( Dximjk + 2*Dxijk )*u4 )
+//                 u5Lst = dd * (-Dxijk*U5_[_i][j][k] + ( Dximjk + 2*Dxijk )*u5 )
+
+//                 dd = 1. / (Dxipjk + Dxippjk )
+//                 u1Rst = dd * ( ( 2*Dxipjk + Dxippjk ) * U1_[i_][j][k] + Dxpjk*U1_[i__][j][k] )
+//                 u2Rst = dd * ( ( 2*Dxipjk + Dxippjk ) * U2_[i_][j][k] + Dxpjk*U2_[i__][j][k] )
+//                 u3Rst = dd * ( ( 2*Dxipjk + Dxippjk ) * U3_[i_][j][k] + Dxpjk*U3_[i__][j][k] )
+//                 u4Rst = dd * ( ( 2*Dxipjk + Dxippjk ) * U4_[i_][j][k] + Dxpjk*U4_[i__][j][k] )
+//                 u5Rst = dd * ( ( 2*Dxipjk + Dxippjk ) * U5_[i_][j][k] + Dxpjk*U5_[i__][j][k] )
+
+//                 /* Slope limiters */
+//                 Phi1L = 
+//                 Phi1R = 
+
+// 				/* The value at right */
+
+// 				xU1[ i][_j][_k] = Phi1R*u1Rst + (1.-Phi1R)*u1c
+// 				xU2[ i][_j][_k] = 
+// 				xU3[ i][_j][_k] = 
+// 				xU4[ i][_j][_k] = 
+// 				xU5[ i][_j][_k] = 
+
+// 				/* The value at left  */
+
+// 				U1x[_i][_j][_k] = 
+// 				U2x[_i][_j][_k] = 
+// 				U3x[_i][_j][_k] = 
+// 				U4x[_i][_j][_k] = 
+// 				U5x[_i][_j][_k] = 
+
+
+// 				/*---  Y  ---*/
+
+// 			} /* end for */
+// 		} /* end for */
+// 	} /* end for */
+// } /* end Reconstruction() */

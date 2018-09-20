@@ -27,6 +27,7 @@
 #include "output.h"
 #include "probes.h"
 #include "finalize.h"
+#include "turbulence.h"
 
 
 /* Definition of global variables */
