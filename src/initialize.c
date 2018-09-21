@@ -62,19 +62,37 @@ void Initialize( void )
 	printf("Total number of cells in computational domain: %d\n", LEN*HIG*DEP );
 
 	/*--- other initializatons ---*/
+
 		/* complexes with deltas */
-	deltaT_X = deltaT / deltaX;     deltaT_Y = deltaT / deltaY;     deltaT_Z = deltaT / deltaZ;
-	 _deltaX = 1. / deltaX;         _deltaY  = 1. / deltaY;          _deltaZ = 1. / deltaZ;
-	_4deltaX = 1. / ( 4 * deltaX ); _4deltaY = 1. / ( 4 * deltaY ); _4deltaZ = 1. / ( 4 * deltaZ );
-	_2deltaX = _4deltaX + _4deltaX; _2deltaY = _4deltaY + _4deltaY; _2deltaZ = _4deltaZ + _4deltaZ;
+	deltaT_X = deltaT / deltaX;     
+	deltaT_Y = deltaT / deltaY;     
+	deltaT_Z = deltaT / deltaZ;
+
+	_deltaX = 1. / deltaX;
+	_deltaY = 1. / deltaY;          
+	_deltaZ = 1. / deltaZ;
+
+	_4deltaX = 1. / ( 4 * deltaX ); 
+	_4deltaY = 1. / ( 4 * deltaY ); 
+	_4deltaZ = 1. / ( 4 * deltaZ );
+
+	_2deltaX = _4deltaX + _4deltaX; 
+	_2deltaY = _4deltaY + _4deltaY; 
+	_2deltaZ = _4deltaZ + _4deltaZ;
+
 		/* sizes + 1 */
 	LENN = LEN + 1; HIGG = HIG + 1; DEPP = DEP + 1;
+
 		/* constant-value lambda_L */
 	lambda_L = mu_L * Cv * K / Pr_L;
+
 		/* complex cp_Pr_T */
 	cp_Pr_T = Cv * K / Pr_T;
+
 		/* complex Cd * delta * delta in Smagorinsky model */
-	CsDD = Cs * pow( deltaX * deltaY * deltaZ, 0.66666667 );
+	DD = pow( deltaX * deltaY * deltaZ, twoThirds ); // Filter width squared.
+	CsDD = Cs * DD;
+
 	/*--- Dynamic memory allocation ---*/
 	{
 	   /* temporal array of pointers */

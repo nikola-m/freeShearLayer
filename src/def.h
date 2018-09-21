@@ -40,4 +40,8 @@
 #define C1 0.333333333333333 // 1/3
 #define C2 0.166666666666667 // 1/6
 
+#define small 1e-30
+#define twoThirds 0.666666666666667
+#define half 0.5
+
 #endif

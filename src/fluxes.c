@@ -48,11 +48,14 @@ void Fluxes( void )
 	_S_;
 
 
+    /* Calculate the SGS viscosity for a given type fo SGS model (Smagorinsky, Dynamic Smagorinsky, Vreman, Wale) */
+    // Calculate_mu_SGS();
+
 	/*--- X-fluxes ---*/
 	for( i = 0, i_ = 1; i < LENN; i++, i_++ ) {
 		for( j = 0, j_ = 1, j__ = 2; j < HIG; j++, j_++, j__++ ) {
 			for( k = 0, k_ = 1, k__ = 2; k < DEP; k++, k_++, k__++ ) {
-				/*--- Inviscid fluxes ---*/
+
 				   /* left parameters */
 				_R =   xU1[i][j][k];
 				_U =   xU2[i][j][k] / _R;
@@ -106,7 +109,7 @@ void Fluxes( void )
 				   /* tangential velocities */
 				if( U > 0 ) { V = _V; W = _W; }
 				else {        V = V_; W = W_; }
-				/*--- Viscous fluxes ---*/
+
 				   /*-- forward cells --*/
 					  /* forward */
 				R_ =    U1_[i_ ][j_ ][k_ ];
@@ -188,7 +191,7 @@ void Fluxes( void )
 				_S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
 						      +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
 				mu_E = mu_L + ( mu_T = rr * CsDD * _S_ );                     /* mu_T = r * Cs * delta * delta * | S |  */
-				sigma_xx = 0.66666667 * mu_E * ( du_dx + du_dx - dv_dy - dw_dz );
+				sigma_xx = twoThirds * mu_E * ( du_dx + du_dx - dv_dy - dw_dz );
 				sigma_xy = mu_E * ( du_dy + dv_dx );
 				sigma_xz = mu_E * ( du_dz + dw_dx );
 				   /* heat flux */
@@ -209,8 +212,6 @@ void Fluxes( void )
    for( i = 0, i_ = 1, i__ = 2; i < LEN; i++, i_++, i__++ ) {	
       for( j = 0, j_ = 1; j < HIGG; j++, j_++ ) {
          for( k = 0, k_ = 1, k__ = 2; k < DEP; k++, k_++, k__++ ) {
-
-				/*--- Inviscid fluxes ---*/
          	
 				   /* lower */
 				_R =   yU1[i][j][k];
@@ -265,7 +266,7 @@ void Fluxes( void )
 				   /* tangential velocities */
 				if( V > 0 ) { U = _U; W = _W; }
 				else {        U = U_; W = W_; }
-				/*--- Viscous fluxes ---*/
+
 				   /*-- upper cells --*/
 					/* upper */
 				R_ =    U1_[i_ ][j_ ][k_ ];
@@ -350,7 +351,7 @@ void Fluxes( void )
 
 				mu_E = mu_L + ( mu_T = rr * CsDD * _S_ ); 		     /* mu_T = r * Cs * delta * delta * | S |  */
 				sigma_yx = mu_E * ( dv_dx + du_dy );
-				sigma_yy = 0.66666667 * mu_E * ( dv_dy + dv_dy - du_dx - dw_dz );
+				sigma_yy = twoThirds * mu_E * ( dv_dy + dv_dy - du_dx - dw_dz );
 				sigma_yz = mu_E * ( dv_dz + dw_dy );
 
 				/* heat flux */
@@ -372,8 +373,6 @@ void Fluxes( void )
    for( i = 0, i_ = 1, i__ = 2; i < LEN; i++, i_++, i__++ ) {
       for( j = 0, j_ = 1, j__ = 2; j < HIG; j++, j_++, j__++ ) {
 	     for( k = 0, k_ = 1; k < DEPP; k++, k_++ ) {
-
-				/*--- Inviscid fluxes ---*/
 
 				   /* farther */
 				_R =   zU1[i][j][k];
@@ -428,8 +427,6 @@ void Fluxes( void )
 				   /* tangential velocities */
 				if( W > 0 ) { U = _U; V = _V; }
 				else {        U = U_; V = V_; }
-
-				/*--- Viscous fluxes ---*/
 
 				   /*-- nearer cells-- */
 					  /* nearer */
@@ -511,7 +508,7 @@ void Fluxes( void )
 				S13 = du_dz + dw_dx;
 				S23 = dv_dz + dw_dy;
 
-				/* Stress magnitude at cell centroid*/
+				/* Stress magnitude at cell centroid */
 				_S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
 						       + ( S12   * S12   + S13   * S13   + S23   * S23 ) );
 
@@ -524,7 +521,7 @@ void Fluxes( void )
                 /* Stress tensor */
 				sigma_zx = mu_E * ( dw_dx + du_dz );
 				sigma_zy = mu_E * ( dw_dy + dv_dz );
-				sigma_zz = 0.66666667 * mu_E * ( dw_dz + dw_dz - du_dx - dv_dy );
+				sigma_zz = twoThirds * mu_E * ( dw_dz + dw_dz - du_dx - dv_dy );
 
 				/* heat flux */
 				lambda_E = lambda_L + mu_T * cp_Pr_T;

@@ -37,7 +37,7 @@ extern real
 	/* effective */
 	mu_E, lambda_E,
 	/* Smagorinsky constant, complex CsDD = Cs * delta * delta, where delta = (dX*dY*dZ)~0.33333 */
-	Cs, CsDD;
+	Cs, CsDD, DD;
 
 extern real maxCoNum;  /* maximum Courant number */
 extern int nStages; /* number of stages of Runge-Kutta algorithm */
