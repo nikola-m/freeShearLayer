@@ -98,7 +98,7 @@ void Initialize( void )
 	   /* temporal array of pointers */
 	real ***fp[10];
 		/* total amount of memory required, for gas dynamics 5 */
-	mem = 10 * ( (unsigned long)LEN + 2 ) * ( (unsigned long)HIG + 2 ) * ( (unsigned long)DEP + 2 )
+	mem = 11 * ( (unsigned long)LEN + 2 ) * ( (unsigned long)HIG + 2 ) * ( (unsigned long)DEP + 2 )
 		+ 10 * ( (unsigned long)LEN + 1 ) *   (unsigned long)HIG	   *   (unsigned long)DEP
 		+ 10 *   (unsigned long)LEN       * ( (unsigned long)HIG + 1 ) *   (unsigned long)DEP
 		+ 10 *   (unsigned long)LEN	      *   (unsigned long)HIG	   * ( (unsigned long)DEP + 1 );
@@ -119,6 +119,8 @@ void Initialize( void )
 	for( i = 0; i < 10; i++ ) fp[i] = Array3D( LEN, HIG, DEPP );
 	zU1 = fp[0]; zU2 = fp[1]; zU3 = fp[2]; zU4 = fp[3]; zU5 = fp[4];
 	U1z = fp[5]; U2z = fp[6]; U3z = fp[7]; U4z = fp[8]; U5z = fp[9];
+        /* For SGS viscosity */
+	mu_SGS = Array3D( LEN+2, HIG+2, DEP+2 );
 	printf(" allocated!\n" );
 	} /* end block */
 		/* array of probes */

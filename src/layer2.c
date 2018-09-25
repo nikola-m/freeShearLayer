@@ -1,10 +1,10 @@
 /* layer2.c ***********************************\
 *  -- Flow in Mixing Layer modeled by LES --   *
-*    explicit two-stage time differencing      *
+*    explicit two/three-stage time differencing*
 *  written by Andrei Chernousov  Dec 23, 2000  *
 *        E-mail: <andrei99@iname.com>          *
 *  http://www.geocities.com/andrei_chernousov  *
-*  Modified by Nikola Mirkov 2018              *
+*  Modified by Nikola Mirkov 2018-present      *
 *        E-mail: largeddysimulation@gmail.com  *
 \**********************************************/
 
@@ -27,7 +27,6 @@
 #include "output.h"
 #include "probes.h"
 #include "finalize.h"
-#include "turbulence.h"
 
 
 /* Definition of global variables */
@@ -46,6 +45,8 @@ real
 	  /* Cons. variables at cell boundaries in y-direction */
 	***zU1, ***zU2, ***zU3, ***zU4, ***zU5,
 	***U1z, ***U2z, ***U3z, ***U4z, ***U5z,
+	  /* SGS viscosity */
+	***mu_SGS,
 
 	R, U, V, W, P, C, /* vector of primitive flow parameters */
 	u1, u2, u3, u4, u5; /* conservative flow variables */
@@ -67,7 +68,7 @@ real/* transport coefficients */
 	/* effective */
 	mu_E, lambda_E,
 	/* Smagorinsky constant, complex CsDD = Cs * delta * delta, where delta = (dX*dY*dZ)~0.33333 */
-	Cs, CsDD;
+	Cs, CsDD, DD;
 
 real maxCoNum;  /* maximum Courant number */
 int nStages;    /* number of stages of Runge-Kutta algorithm */

@@ -17,4 +17,10 @@ void checkCoNum( void );
 */
 real ***Array3D( int columns, int rows, int floors );
 
+/*
+ * Free Array 3D
+ */
+void free3D( real *** arr, int columns, int rows );
+
+
 #endif

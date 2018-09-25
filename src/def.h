@@ -44,4 +44,10 @@
 #define twoThirds 0.666666666666667
 #define half 0.5
 
+#define DynamicSmagorinskySGS 1 // hardcoded option
+
+// typedef int bool;
+// #define TRUE  1
+// #define FALSE 0
+
 #endif

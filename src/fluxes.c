@@ -1,9 +1,9 @@
 #include <math.h>      /* sqrt()       */
-
+#include <stdio.h>
 #include "type.h"
 #include "def.h"      /* Definitions, parameters */
 #include "global.h"   /* global variables */
-
+#include "turbulence.h" /* LES: SGS models, filtering prcedres...*/
 #include "fluxes.h"
 
 /***********
@@ -49,7 +49,9 @@ void Fluxes( void )
 
 
     /* Calculate the SGS viscosity for a given type fo SGS model (Smagorinsky, Dynamic Smagorinsky, Vreman, Wale) */
-    // Calculate_mu_SGS();
+    if (DynamicSmagorinskySGS) {
+    	DynamicSmagorinsky(U1, U2, U3, U4, mu_SGS);
+    }
 
 	/*--- X-fluxes ---*/
 	for( i = 0, i_ = 1; i < LENN; i++, i_++ ) {
@@ -179,18 +181,30 @@ void Fluxes( void )
 				du_dz = ( Uk + uk - kU - ku ) * _4deltaZ;
 				dv_dz = ( Vk + vk - kV - kv ) * _4deltaZ;
 				dw_dz = ( Wk + wk - kW - kw ) * _4deltaZ;
-				   /* mean velocities and density */
-				rr = 0.5 * ( R_ + _R );
+				   /* mean velocities */
 				uu = 0.5 * ( U_ + _U );
 				vv = 0.5 * ( V_ + _V );
 				ww = 0.5 * ( W_ + _W );
+
+				if( DynamicSmagorinskySGS ){
+
+				    mu_T = mu_SGS[i_][j_][k_];
+
+			    } else {
+
+					/* mean density */
+					rr = 0.5 * ( R_ + _R );
 				   /* stresses */
-				S12 = du_dy + dv_dx;
-				S13 = du_dz + dw_dx;
-				S23 = dv_dz + dw_dy;
-				_S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
-						      +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
-				mu_E = mu_L + ( mu_T = rr * CsDD * _S_ );                     /* mu_T = r * Cs * delta * delta * | S |  */
+					S12 = du_dy + dv_dx;
+					S13 = du_dz + dw_dx;
+					S23 = dv_dz + dw_dy;
+					_S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
+							      +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+					mu_T = rr * CsDD * _S_;                     /* mu_T = r * Cs * delta * delta * | S |  */
+
+			    }
+
+				mu_E = mu_L + mu_T;
 				sigma_xx = twoThirds * mu_E * ( du_dx + du_dx - dv_dy - dw_dz );
 				sigma_xy = mu_E * ( du_dy + dv_dx );
 				sigma_xz = mu_E * ( du_dz + dw_dx );
@@ -336,20 +350,30 @@ void Fluxes( void )
 				du_dz = ( Uk + uk - kU - ku ) * _4deltaZ;
 				dv_dz = ( Vk + vk - kV - kv ) * _4deltaZ;
 				dw_dz = ( Wk + wk - kW - kw ) * _4deltaZ;
-				   /* mean velocities and density */
-				rr = 0.5 * ( R_ + _R );
+				   /* mean velocities */
 				uu = 0.5 * ( U_ + _U );
 				vv = 0.5 * ( V_ + _V );
 				ww = 0.5 * ( W_ + _W );
+
+				if( DynamicSmagorinskySGS ){
+
+				    mu_T = mu_SGS[i_][j_][k_];
+
+			    } else {
+
+					/* mean density */
+					rr = 0.5 * ( R_ + _R );
 				   /* stresses */
-				S12 = du_dy + dv_dx;
-				S13 = du_dz + dw_dx;
-				S23 = dv_dz + dw_dy;
+					S12 = du_dy + dv_dx;
+					S13 = du_dz + dw_dx;
+					S23 = dv_dz + dw_dy;
+					_S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
+							      +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+					mu_T = rr * CsDD * _S_;                     /* mu_T = r * Cs * delta * delta * | S |  */
 
-				_S_ = sqrt( 2. * ( du_dx*du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
-						      +  ( S12  * S12  + S13   * S13   + S23   * S23 ) );
+			    }
 
-				mu_E = mu_L + ( mu_T = rr * CsDD * _S_ ); 		     /* mu_T = r * Cs * delta * delta * | S |  */
+				mu_E = mu_L + mu_T;
 				sigma_yx = mu_E * ( dv_dx + du_dy );
 				sigma_yy = twoThirds * mu_E * ( dv_dy + dv_dy - du_dx - dw_dz );
 				sigma_yz = mu_E * ( dv_dz + dw_dy );
@@ -497,26 +521,34 @@ void Fluxes( void )
 				du_dz = ( U_ - _U ) * _deltaZ;
 				dv_dz = ( V_ - _V ) * _deltaZ;
 				dw_dz = ( W_ - _W ) * _deltaZ;
-				   /* mean velocities and density */
-				rr = 0.5 * ( R_ + _R );
+				   /* mean velocities */
 				uu = 0.5 * ( U_ + _U );
 				vv = 0.5 * ( V_ + _V );
 				ww = 0.5 * ( W_ + _W );
 
-				   /* stresses */
-				S12 = du_dy + dv_dx;
-				S13 = du_dz + dw_dx;
-				S23 = dv_dz + dw_dy;
+				if( DynamicSmagorinskySGS ){
 
-				/* Stress magnitude at cell centroid */
-				_S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
-						       + ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+				    mu_T = mu_SGS[i_][j_][k_];
+
+			    } else {
+
+					/* mean density */
+					rr = 0.5 * ( R_ + _R );
+				   /* stresses */
+					S12 = du_dy + dv_dx;
+					S13 = du_dz + dw_dx;
+					S23 = dv_dz + dw_dy;
+					_S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
+							      +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+					mu_T = rr * CsDD * _S_;                     /* mu_T = r * Cs * delta * delta * | S |  */
+
+			    }
 
 				/* 
 				The effective dynamic viscosity: mueff = mu_laminar + mu_sgs (or mu_turbulent or mu_T) 
 				Smagorinsky model gives: mu_T = r * Cs * delta * delta * | S |  
 				*/
-				mu_E = mu_L + ( mu_T = rr * CsDD * _S_ ); 
+				mu_E = mu_L + mu_T; 
 
                 /* Stress tensor */
 				sigma_zx = mu_E * ( dw_dx + du_dz );

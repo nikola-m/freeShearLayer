@@ -5,6 +5,8 @@
 *
 */
 
+# include <stdlib.h>
+#include <stdio.h>
 #include <math.h>      /* sqrt()       */
 #include "type.h"      /*the "real" type */
 #include "def.h"       /* Definitions, parameters */
@@ -92,16 +94,17 @@ real ***filter_( real ***U, real h[3] ){
 		} 
 	}
 
+    free3D( U_ ,LEN+2, HIG+2 );
 
 	return U__;
 }
 
 
-void DynamicSmagorinsky (real ***rho, real ***u, real ***v, real ***w, real ***mu_SGS) {
+void DynamicSmagorinsky (real ***rho, real ***ru, real ***rv, real ***rw, real ***mu_SGS) {
 /*
  * Definition of space varying coefficient Cd in Smagirinsky SGS model using
  * the dynamic procedure of Germano and using Lilly modification.
- * At the moment we expect primitive variables as input parameters.
+ * At the moment we expect CONSERVATIVE VARIABLES as input parameters.
  *
  * The original function used as a reference is written by Zubin Lal, Uni Wiscosin-Madison
  *
@@ -118,15 +121,28 @@ void DynamicSmagorinsky (real ***rho, real ***u, real ***v, real ***w, real ***m
     real M11,M12,M13,M21,M22,M23,M31,M32,M33;
     real MMMM;
     real LLMM;
+    real rr;
 
     real ***magStrain;
 
+    // Primitive variables
+    real ***u, ***v, ***w;
+
+    // Filtered Velocity components 
+    // _ 
+    // Ui
     real ***u_, ***v_, ***w_;
 
+    //  ____
+    //  UiUj
     real ***uu_, ***uv_, ***uw_;
     real ***vu_, ***vv_, ***vw_;
     real ***wu_, ***wv_, ***ww_;
 
+    // The Leonard stress tensor field components
+    real ***L11, ***L12, ***L13;
+    real ***L21, ***L22, ***L23;
+    real ***L31, ***L32, ***L33;
 
     real ***A11, ***A12, ***A13;
     real ***A21, ***A22, ***A23;
@@ -140,32 +156,11 @@ void DynamicSmagorinsky (real ***rho, real ***u, real ***v, real ***w, real ***m
     real ***B21_, ***B22_, ***B23_;
     real ***B31_, ***B32_, ***B33_;
 
-    real ***L11, ***L12, ***L13;
-    real ***L21, ***L22, ***L23;
-    real ***L31, ***L32, ***L33;
-
-
     magStrain = Array3D( LEN+2, HIG+2, DEP+2 );
 
-
-    // Filtered Velocity components 
-    // _ 
-    // Ui
-    // u_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // v_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // w_ = Array3D( LEN+2, HIG+2, DEP+2 );
-
-    //  ____
-    //  UiUj
-    // uu_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // uv_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // uw_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // vu_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // vv_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // vw_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // wu_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // wv_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // ww_ = Array3D( LEN+2, HIG+2, DEP+2 );
+    u = Array3D( LEN+2, HIG+2, DEP+2 );
+    v = Array3D( LEN+2, HIG+2, DEP+2 );
+    w = Array3D( LEN+2, HIG+2, DEP+2 );
 
     A11 = Array3D( LEN+2, HIG+2, DEP+2 );
     A12 = Array3D( LEN+2, HIG+2, DEP+2 );
@@ -176,16 +171,6 @@ void DynamicSmagorinsky (real ***rho, real ***u, real ***v, real ***w, real ***m
     A31 = Array3D( LEN+2, HIG+2, DEP+2 );
     A32 = Array3D( LEN+2, HIG+2, DEP+2 );
     A33 = Array3D( LEN+2, HIG+2, DEP+2 );    
-
-    // A11_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // A12_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // A13_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // A21_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // A22_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // A23_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // A31_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // A32_ = Array3D( LEN+2, HIG+2, DEP+2 );
-    // A33_ = Array3D( LEN+2, HIG+2, DEP+2 );
 
     B11_ = Array3D( LEN+2, HIG+2, DEP+2 );
     B12_ = Array3D( LEN+2, HIG+2, DEP+2 );
@@ -208,10 +193,25 @@ void DynamicSmagorinsky (real ***rho, real ***u, real ***v, real ***w, real ***m
     L33 = Array3D( LEN+2, HIG+2, DEP+2 );
 
 
+    // Change from given Conservative variables to Primitive variables
+    for( i = 0; i < LENN+1; i++ ) {
+        for( j = 0; j < HIGG+1; j++) { 
+            for( k = 0; k < DEPP+1; k++ ) {
+
+                rr = 1./rho[i][j][k];
+
+                u[i][j][k] = ru[i][j][k]*rr;
+                v[i][j][k] = rv[i][j][k]*rr;
+                w[i][j][k] = rw[i][j][k]*rr;
+
+            }
+        }
+    }
+
     // Unfiltered u_i*u_j complex 
     // NOTE: It is stored in allocated arrays of Leonard stress tensor components to save space!
 	for( i = 0; i < LENN+1; i++ ) {
-		for( j = 1; j < HIGG+1; j++) { 
+		for( j = 0; j < HIGG+1; j++) { 
 			for( k = 0; k < DEPP+1; k++ ) {
 
                 L11[i][j][k] = u[i][j][k]*u[i][j][k];
@@ -247,9 +247,9 @@ void DynamicSmagorinsky (real ***rho, real ***u, real ***v, real ***w, real ***m
     wv_ = filter_(L32, FilterKer);
     ww_ = filter_(L33, FilterKer);
 
-	for( i = 0; i < LENN+1; i++ ) {
-		for( j = 1; j < HIGG+1; j++) { 
-			for( k = 0; k < DEPP+1; k++ ) {
+	for( i = 1; i < LENN; i++ ) {
+		for( j = 1; j < HIGG; j++) { 
+			for( k = 1; k < DEPP; k++ ) {
 
                 // Leonard stresses: 
                 // L_{ij} = \hat{u_{i} u_{j}} - \hat{u_{i}} \hat{u_{j}}
@@ -295,15 +295,24 @@ void DynamicSmagorinsky (real ***rho, real ***u, real ***v, real ***w, real ***m
                 S32 = 0.5*(dw_dy + dv_dz);
                 S33 = dw_dz;
 
-                // |S|
+                // |S| Strain tensor magnitude
                 S = sqrt( 2*( S11*S11 + S12*S12+ S13*S13 
                             + S21*S21 + S22*S22 + S23*S23
                             + S31*S31 + S32*S32 + S33*S33 ) );
+
+                /* more efficient:
+                S12 = du_dy + dv_dx;
+                S13 = du_dz + dw_dx;
+                S23 = dv_dz + dw_dy;
+                S = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
+                              +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+                */
+
                 magStrain[i][j][k] = S;
 
-                //Filtered stress tensor: 
+                //Filtered stress tensor components: 
                 // __
-                // Sij
+                // Sij 
 		        du_dx = ( u_[i+1][j][k] - u_[i-1][j][k] ) * _2deltaX;
 		        du_dy = ( u_[i][j+1][k] - u_[i][j-1][k] ) * _2deltaY;
 		        du_dz = ( u_[i][j][k+1] - u_[i][j][k-1] ) * _2deltaZ;
@@ -330,11 +339,17 @@ void DynamicSmagorinsky (real ***rho, real ***u, real ***v, real ***w, real ***m
                 S33_ = dw_dz;
 
                 // ___
-                // |S|   
+                // |S|  Strain tensor magnitude using the test filtered velocities and its gradient
                 S_ = sqrt( 2*( S11_*S11_ + S12_*S12_ + S13_*S13_
                              + S21_*S21_ + S22_*S22_ + S23_*S23_
                              + S31_*S31_ + S32_*S32_ + S33_*S33_ ) );
-
+                /* more efficient:
+                S12_ = du_dy + dv_dx;
+                S13_ = du_dz + dw_dx;
+                S23_ = dv_dz + dw_dy;
+                S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
+                              +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+                */
                  
                 // _     ___   __
                 // Bij = |S| * Sij
@@ -387,8 +402,6 @@ void DynamicSmagorinsky (real ***rho, real ***u, real ***v, real ***w, real ***m
                 // Mij = \hat{Delta}^2*Bij - Delta^2*\hat{Aij})
                 // hat{Delta} = 2*Delta => pow(Delta_,2.0) = 4*pow(Delta,2.0)
 
-                // DD = pow(Delta,2.0);
-
                 M11 = DD * ( 4*B11_[i][j][k] - A11_[i][j][k] );
                 M12 = DD * ( 4*B12_[i][j][k] - A12_[i][j][k] );
                 M13 = DD * ( 4*B13_[i][j][k] - A13_[i][j][k] );
@@ -430,4 +443,65 @@ void DynamicSmagorinsky (real ***rho, real ***u, real ***v, real ***w, real ***m
             }
         }
     }
+
+    free3D( u,LEN+2, HIG+2  );
+    free3D( v,LEN+2, HIG+2  );
+    free3D( w,LEN+2, HIG+2  );
+
+    free3D( u_,LEN+2, HIG+2  );
+    free3D( v_,LEN+2, HIG+2  );
+    free3D( w_,LEN+2, HIG+2  );
+
+    free3D( uu_,LEN+2, HIG+2  );
+    free3D( uv_,LEN+2, HIG+2  );
+    free3D( uw_,LEN+2, HIG+2  );
+    free3D( vu_,LEN+2, HIG+2  );
+    free3D( vv_,LEN+2, HIG+2  );
+    free3D( vw_,LEN+2, HIG+2  );
+    free3D( wu_,LEN+2, HIG+2  );
+    free3D( wv_,LEN+2, HIG+2 );
+    free3D( ww_,LEN+2, HIG+2  );
+
+    free3D( A33_,LEN+2, HIG+2  );
+    free3D( A32_,LEN+2, HIG+2  );
+    free3D( A31_,LEN+2, HIG+2  );
+    free3D( A23_,LEN+2, HIG+2  );
+    free3D( A22_,LEN+2, HIG+2  );
+    free3D( A21_,LEN+2, HIG+2  );
+    free3D( A11_,LEN+2, HIG+2  );
+    free3D( A12_,LEN+2, HIG+2  );
+    free3D( A13_,LEN+2, HIG+2  );
+
+    free3D( A33,LEN+2, HIG+2  );
+    free3D( A32,LEN+2, HIG+2  );
+    free3D( A31,LEN+2, HIG+2  );
+    free3D( A23,LEN+2, HIG+2  );
+    free3D( A22,LEN+2, HIG+2  );
+    free3D( A21,LEN+2, HIG+2  );
+    free3D( A11,LEN+2, HIG+2  );
+    free3D( A12,LEN+2, HIG+2  );
+    free3D( A13,LEN+2, HIG+2  );
+
+    free3D( L11,LEN+2, HIG+2  );
+    free3D( L12,LEN+2, HIG+2  );
+    free3D( L13,LEN+2, HIG+2  );
+    free3D( L21,LEN+2, HIG+2  );
+    free3D( L22,LEN+2, HIG+2  );
+    free3D( L23,LEN+2, HIG+2  );
+    free3D( L31,LEN+2, HIG+2  );
+    free3D( L32,LEN+2, HIG+2  );
+    free3D( L33,LEN+2, HIG+2  );
+
+    free3D( B11_,LEN+2, HIG+2  );
+    free3D( B12_,LEN+2, HIG+2  );
+    free3D( B13_,LEN+2, HIG+2  );
+    free3D( B21_,LEN+2, HIG+2  );
+    free3D( B22_,LEN+2, HIG+2  );
+    free3D( B23_,LEN+2, HIG+2  );
+    free3D( B31_,LEN+2, HIG+2  );
+    free3D( B32_,LEN+2, HIG+2  );
+    free3D( B33_,LEN+2, HIG+2  );
+
+    free3D( magStrain,LEN+2, HIG+2  );
+
 }

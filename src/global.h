@@ -28,6 +28,8 @@ extern real
 	_2deltaX, _2deltaY, _2deltaZ,
 	_4deltaX, _4deltaY, _4deltaZ;
 
+extern real ***mu_SGS;
+
 extern real
 	/* transport coefficients */
 	/* molecular */

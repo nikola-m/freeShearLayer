@@ -78,3 +78,20 @@ int i, j;
 	return x;
 
 } /* end Array3D() */
+
+  /*
+ * Free Array 3D
+ */
+void free3D( real *** arr, int columns, int rows ){
+  
+  int i,j;
+
+  for ( i = 0; i < columns; i++ ){
+    for ( j = 0; j < rows; j++ ){
+      free( arr[i][j] );
+    }
+    free( arr[i] );
+    }
+  free( arr );
+
+} 
