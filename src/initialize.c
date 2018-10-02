@@ -143,8 +143,6 @@ void Initialize( void )
 				     fread( &U4[i][j][1], DEP * sizeof( U4[i][j][1] ), 1, pF ) == 1 &&
 					 fread( &U5[i][j][1], DEP * sizeof( U5[i][j][1] ), 1, pF ) == 1 ) {
 
-			      // puts( "Reading fields succesfull." );
-
 				} else {
 
 				  puts( "Could not read the fields" );
@@ -152,8 +150,9 @@ void Initialize( void )
 				}
 			}
 		}
-		if ( fread( &step, sizeof( step ), 1, pF ) == 1 ){
-			puts( "Reading step value successful." );
+		if (  // fread( &deltaT, sizeof( deltaT ), 1, pF ) == 1 &&
+			 fread( &step, sizeof( step ), 1, pF ) == 1 ) {
+			puts( "Reading restart file successful." );
 		}
 		fclose( pF );
 	} /* end if restoring from backup */

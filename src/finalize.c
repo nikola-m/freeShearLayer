@@ -28,7 +28,8 @@ void Finalize( void )
 			fwrite( &U5[i][j][1], DEP * sizeof( U5[i][j][1] ), 1, pF );
 		}
 	}
-	fwrite( &step, sizeof( step ), 1, pF );
+    fwrite( &deltaT, sizeof( deltaT ), 1, pF );
+	fwrite( &step, sizeof( step ), 1, pF ); 
 	fclose( pF );
 
 } /* end Finalize() */

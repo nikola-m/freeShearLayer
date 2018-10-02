@@ -195,11 +195,11 @@ void Fluxes( void )
 					/* mean density */
 					rr = 0.5 * ( R_ + _R );
 				   /* stresses */
-					S12 = du_dy + dv_dx;
-					S13 = du_dz + dw_dx;
-					S23 = dv_dz + dw_dy;
-					_S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
-							      +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+					S12 = 0.5 * (du_dy + dv_dx);
+					S13 = 0.5 * (du_dz + dw_dx);
+					S23 = 0.5 * (dv_dz + dw_dy);
+                    _S_ = sqrt( 2 * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz 
+                                      + 2 * ( S12   * S12   + S13   * S13   + S23   * S23 ) ) );
 					mu_T = rr * CsDD * _S_;                     /* mu_T = r * Cs * delta * delta * | S |  */
 
 			    }
@@ -364,11 +364,11 @@ void Fluxes( void )
 					/* mean density */
 					rr = 0.5 * ( R_ + _R );
 				   /* stresses */
-					S12 = du_dy + dv_dx;
-					S13 = du_dz + dw_dx;
-					S23 = dv_dz + dw_dy;
-					_S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
-							      +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+					S12 = 0.5 * (du_dy + dv_dx);
+					S13 = 0.5 * (du_dz + dw_dx);
+					S23 = 0.5 * (dv_dz + dw_dy);
+                    _S_ = sqrt( 2 * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz 
+                                      + 2 * ( S12   * S12   + S13   * S13   + S23   * S23 ) ) );
 					mu_T = rr * CsDD * _S_;                     /* mu_T = r * Cs * delta * delta * | S |  */
 
 			    }
@@ -535,11 +535,11 @@ void Fluxes( void )
 					/* mean density */
 					rr = 0.5 * ( R_ + _R );
 				   /* stresses */
-					S12 = du_dy + dv_dx;
-					S13 = du_dz + dw_dx;
-					S23 = dv_dz + dw_dy;
-					_S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
-							      +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+					S12 = 0.5 * (du_dy + dv_dx);
+					S13 = 0.5 * (du_dz + dw_dx);
+					S23 = 0.5 * (dv_dz + dw_dy);
+                    _S_ = sqrt( 2 * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz 
+                                      + 2 * ( S12   * S12   + S13   * S13   + S23   * S23 ) ) );
 					mu_T = rr * CsDD * _S_;                     /* mu_T = r * Cs * delta * delta * | S |  */
 
 			    }

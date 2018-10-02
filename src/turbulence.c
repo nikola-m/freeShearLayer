@@ -287,12 +287,12 @@ void DynamicSmagorinsky (real ***rho, real ***ru, real ***rv, real ***rw, real *
                 S12 = 0.5*(du_dy + dv_dx);
                 S13 = 0.5*(du_dz + dw_dx);
 
-                S21 = 0.5*(dv_dx + du_dy);
+                S21 = S12;
                 S22 = dv_dy;
                 S23 = 0.5*(dv_dz + dw_dy);
 
-                S31 = 0.5*(dw_dx + du_dz);
-                S32 = 0.5*(dw_dy + dv_dz);
+                S31 = S13;
+                S32 = S23;
                 S33 = dw_dz;
 
                 // |S| Strain tensor magnitude
@@ -301,11 +301,11 @@ void DynamicSmagorinsky (real ***rho, real ***ru, real ***rv, real ***rw, real *
                             + S31*S31 + S32*S32 + S33*S33 ) );
 
                 /* more efficient:
-                S12 = du_dy + dv_dx;
-                S13 = du_dz + dw_dx;
-                S23 = dv_dz + dw_dy;
-                S = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
-                              +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+                S12 = 0.5 * (du_dy + dv_dx);
+                S13 = 0.5 * (du_dz + dw_dx);
+                S23 = 0.5 * (dv_dz + dw_dy);
+                S = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz 
+                                 + 2* ( S12   * S12   + S13   * S13   + S23   * S23 ) ) );
                 */
 
                 magStrain[i][j][k] = S;
@@ -330,12 +330,12 @@ void DynamicSmagorinsky (real ***rho, real ***ru, real ***rv, real ***rw, real *
                 S12_ = 0.5*(du_dy + dv_dx);
                 S13_ = 0.5*(du_dz + dw_dx);
 
-                S21_ = 0.5*(dv_dx + du_dy);
+                S21_ = S12_;
                 S22_ = dv_dy;
                 S23_ = 0.5*(dv_dz + dw_dy);
 
-                S31_ = 0.5*(dw_dx + du_dz);
-                S32_ = 0.5*(dw_dy + dv_dz);
+                S31_ = S13_;
+                S32_ = S23_;
                 S33_ = dw_dz;
 
                 // ___
@@ -344,11 +344,11 @@ void DynamicSmagorinsky (real ***rho, real ***ru, real ***rv, real ***rw, real *
                              + S21_*S21_ + S22_*S22_ + S23_*S23_
                              + S31_*S31_ + S32_*S32_ + S33_*S33_ ) );
                 /* more efficient:
-                S12_ = du_dy + dv_dx;
-                S13_ = du_dz + dw_dx;
-                S23_ = dv_dz + dw_dy;
-                S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
-                              +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+                S12_ = 0.5 * (du_dy + dv_dx);
+                S13_ = 0.5 * (du_dz + dw_dx);
+                S23_ = 0.5 * (dv_dz + dw_dy);
+                S_ = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz 
+                                  + 2* ( S12   * S12   + S13   * S13   + S23   * S23 ) ) );
                 */
                  
                 // _     ___   __
@@ -503,5 +503,53 @@ void DynamicSmagorinsky (real ***rho, real ***ru, real ***rv, real ***rw, real *
     free3D( B33_,LEN+2, HIG+2  );
 
     free3D( magStrain,LEN+2, HIG+2  );
+
+}
+
+void CalculateQCriteria(real ***rho, real ***ru, real ***rv, real ***rw, real ***Q){
+
+    int i,j,k;
+    real du_dx, du_dy, du_dz, dv_dx, dv_dy, dv_dz, dw_dx, dw_dy, dw_dz; 
+    real S12,S13,S23; 
+    real S;
+    real O12,O13,O23;
+    real O;
+
+    for( i = 1; i < LENN; i++ ) {
+        for( j = 1; j < HIGG; j++) { 
+            for( k = 1; k < DEPP; k++ ) {
+
+                // Velocity gradient
+                du_dx = ( ru[i+1][j][k]/rho[i+1][j][k] - ru[i-1][j][k]/rho[i-1][j][k] ) * _2deltaX;
+                du_dy = ( ru[i][j+1][k]/rho[i][j+1][k] - ru[i][j-1][k]/rho[i][j-1][k] ) * _2deltaY;
+                du_dz = ( ru[i][j][k+1]/rho[i][j][k+1] - ru[i][j][k-1]/rho[i][j][k-1] ) * _2deltaZ;
+
+                dv_dx = ( rv[i+1][j][k]/rho[i+1][j][k] - rv[i-1][j][k]/rho[i-1][j][k] ) * _2deltaX; 
+                dv_dy = ( rv[i][j+1][k]/rho[i][j+1][k] - rv[i][j-1][k]/rho[i][j-1][k] ) * _2deltaY;        
+                dv_dz = ( rv[i][j][k+1]/rho[i][j][k+1] - rv[i][j][k-1]/rho[i][j][k-1] ) * _2deltaZ;
+
+
+                dw_dx = ( rw[i+1][j][k]/rho[i+1][j][k] - rw[i-1][j][k]/rho[i-1][j][k] ) * _2deltaX;
+                dw_dy = ( rw[i][j+1][k]/rho[i][j+1][k] - rw[i][j-1][k]/rho[i][j-1][k] ) * _2deltaY;
+                dw_dz = ( rw[i][j][k+1]/rho[i][j][k+1] - rw[i][j][k-1]/rho[i][j][k-1] ) * _2deltaZ;
+
+                S12 = du_dy + dv_dx;
+                S13 = du_dz + dw_dx;
+                S23 = dv_dz + dw_dy;
+
+                S = sqrt( 2. * ( du_dx * du_dx + dv_dy * dv_dy + dw_dz * dw_dz )
+                              +  ( S12   * S12   + S13   * S13   + S23   * S23 ) );
+
+                O12 = 0.5*(du_dy - dv_dx);
+                O13 = 0.5*(du_dz - dw_dx);
+                O23 = 0.5*(dv_dz - dw_dy);
+
+                O = sqrt( 2 * ( O12*O12 + O13*O13 + O23*O23 ) );
+
+                Q[i][j][k] = 0.5 * ( O - S );
+                
+            }
+        }
+    }
 
 }
