@@ -1,0 +1,2 @@
+./ini2bin
+cp mpi_layer2.bin ../../
