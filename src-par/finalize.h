@@ -1,1 +1,1 @@
-void Finalize( );
+void Finalize( int myid );

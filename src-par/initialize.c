@@ -158,10 +158,22 @@ float buf;
 		// MPI Buf
 	BufCountF = 5 *  HIG    *  DEP;    // BufCountF < BufCountU
 	BufCountU = 5 * (HIG+2) * (DEP+2); // BufCountU
-	if((Buf = (float *)malloc(BufCountU * sizeof(float))) == NULL) {
+
+
+	Bufp = (float *)malloc(BufCountU * sizeof(float)); // bufer for data to previous subdomain
+	Bufn = (float *)malloc(BufCountU * sizeof(float)); // bufer for data to next subdomain
+	pBuf = (float *)malloc(BufCountU * sizeof(float)); // bufer for data from previous subdomain
+	nBuf = (float *)malloc(BufCountU * sizeof(float)); // bufer for data from next subdomain
+	if (Bufp == NULL || Bufn == NULL || pBuf == NULL || nBuf == NULL) {
 		fprintf(stderr, "mpi_layer2: can't allocate memory.\n");
-		MPI_Abort(MPI_COMM_WORLD, 1);
+		MPI_Abort(MPI_COMM_WORLD, -1);
 	}
+
+
+	// if((Buf = (float *)malloc(BufCountU * sizeof(float))) == NULL) {
+	// 	fprintf(stderr, "mpi_layer2: can't allocate memory.\n");
+	// 	MPI_Abort(MPI_COMM_WORLD, 1);
+	// }
 
 		/* array of probes */
 	if((probes=(float *)malloc(sizeof(float) * HIG)) == NULL) {
@@ -183,9 +195,9 @@ float buf;
 					U3[i][j][k] = 0.;/*R * V;*/
 					U4[i][j][k] = 0.;/*R * W;*/
 					U5[i][j][k] = P / K_1 + 0.5 * R * ( U * U /*+ V * V + W * W*/ );
-				} /* end for() */
-			} /* end for() */
-		} /* end for() */
+				} 
+			} 
+		} 
 		U = 200;
 		for ( i = 1; i < LENN; i++ ) {
 			for ( j = HIG/2+1; j < HIGG; j++ ) {
@@ -195,9 +207,9 @@ float buf;
 					U3[i][j][k] = 0.;/*R * V*/;
 					U4[i][j][k] = 0.;/*R * W*/;
 					U5[i][j][k] = P / K_1 + 0.5 * R * ( U * U /*+ V * V + W * W*/ );
-				} /* end for() */
-			} /* end for() */
-		} /* end for() */
+				} 
+			} 
+		} 
 		step = 0;  /* null step number at the beginning */
 	}
 

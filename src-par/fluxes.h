@@ -1,1 +1,1 @@
-void Fluxes( );
+void Fluxes( int myid, int numprocs );

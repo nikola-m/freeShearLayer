@@ -17,180 +17,119 @@ unsigned i, j, k;
 int next, previous; // processes next/previous to this
 MPI_Status status;
 
-	//--- Communicate via MPI to complete cell x-layers ---
 
-	//-- sending to next processes
 
-	// next process's ID
-	next = myid+1;
 
-	// root process
-	if (0 == myid) {
-		// sending to the next
-		for (i = 0, j = 0; j <= HIGG; j++) {
-			for (k = 0; k <= DEPP; k++, i += 5) {
-				Buf[i  ] = U1_[LEN][j][k];
-				Buf[i+1] = U2_[LEN][j][k];
-				Buf[i+2] = U3_[LEN][j][k];
-				Buf[i+3] = U4_[LEN][j][k];
-				Buf[i+4] = U5_[LEN][j][k];
-			}
-		}
-		MPI_Send(Buf, BufCountU, MPI_FLOAT, next, 99, MPI_COMM_WORLD);
-		// previous doesn't exist
-/*		MPI_Recv(Buf, BufCountU, MPI_FLOAT, MPI_ANY_SOURCE, 99, MPI_COMM_WORLD,
-					&status);
-		for (i = 0, j = 0; j <= HIGG; j++) {
-			for (k = 0; k <= DEPP; k++, i += 5) {
-				U1_[0][j][k] = Buf[i  ];
-				U2_[0][j][k] = Buf[i+1];
-				U3_[0][j][k] = Buf[i+2];
-				U4_[0][j][k] = Buf[i+3];
-				U5_[0][j][k] = Buf[i+4];
-			}
-		}
-*/
-	} // end if()
+  /*--- Communication via MPI to complete ghost cell x-layers ---*/
 
-	// other processes
-	else {
-		// receiving from the previous, everyone
-		MPI_Recv(Buf, BufCountU, MPI_FLOAT, MPI_ANY_SOURCE, 99, MPI_COMM_WORLD,
-					&status);
-		for (i = 0, j = 0; j <= HIGG; j++) {
-			for (k = 0; k <= DEPP; k++, i += 5) {
-				U1_[0][j][k] = Buf[i  ];
-				U2_[0][j][k] = Buf[i+1];
-				U3_[0][j][k] = Buf[i+2];
-				U4_[0][j][k] = Buf[i+3];
-				U5_[0][j][k] = Buf[i+4];
-			}
-		}
-		// sending to the next; if not the last!
-		if(myid != numprocs-1) {
-			for (i = 0, j = 0; j <= HIGG; j++) {
-				for (k = 0; k <= DEPP; k++, i += 5) {
-					Buf[i  ] = U1_[LEN][j][k];
-					Buf[i+1] = U2_[LEN][j][k];
-					Buf[i+2] = U3_[LEN][j][k];
-					Buf[i+3] = U4_[LEN][j][k];
-					Buf[i+4] = U5_[LEN][j][k];
-				}
-			}
-			MPI_Send(Buf, BufCountU, MPI_FLOAT, next, 99, MPI_COMM_WORLD);
-		} // end if(myid != numprocs-1)
-	}
+  /* ranks of the next and the previous processes */
+  next     = myid + 1;
+  previous = myid - 1;
 
-	//-- sending to previous processes
+  /* preparing array for sending to the previous - every process except 0th */
+  if (myid != 0) {
+    for (i = 0, j = 0; j <= HIGG; j++) {
+      for (k = 0; k <= DEPP; k++) {
+		Bufp[i++] = U1_[1][j][k];
+		Bufp[i++] = U2_[1][j][k];
+		Bufp[i++] = U3_[1][j][k];
+		Bufp[i++] = U4_[1][j][k];
+		Bufp[i++] = U5_[1][j][k];
+      }
+    }
+  }
+  /* preparing array for sending to the next - every process except the last, (numprocs-1)th */
+  if (myid != numprocs-1) {
+    for (i = 0, j = 0; j <= HIGG; j++) {
+      for (k = 0; k <= DEPP; k++) {
+        Bufn[i++] = U1_[LEN][j][k];
+        Bufn[i++] = U2_[LEN][j][k];
+        Bufn[i++] = U3_[LEN][j][k];
+        Bufn[i++] = U4_[LEN][j][k];
+        Bufn[i++] = U5_[LEN][j][k];
+      }
+    }
+  }
 
-	// previous process's ID
-	previous = myid-1;
+  /*-- communicating via MPI --*/
 
-	// root process
-	if(0 == myid) {
-		// previous doesn't exist
-/*		for (i = 0, j = 0; j <= HIGG; j++) {
-			for (k = 0; k <= DEPP; k++, i += 5) {
-				Buf[i  ] = U1_[1][j][k];
-				Buf[i+1] = U2_[1][j][k];
-				Buf[i+2] = U3_[1][j][k];
-				Buf[i+3] = U4_[1][j][k];
-				Buf[i+4] = U5_[1][j][k];
-			}
-		}
-		MPI_Send(Buf, BufCountU, MPI_FLOAT, previous, 99, MPI_COMM_WORLD);
-*/
-		// receiving from the next
-		MPI_Recv(Buf, BufCountU, MPI_FLOAT, MPI_ANY_SOURCE, 99, MPI_COMM_WORLD,
-					&status);
-		for (i = 0, j = 0; j <= HIGG; j++) {
-			for (k = 0; k <= DEPP; k++, i += 5) {
-				U1_[LENN][j][k] = Buf[i  ];
-				U2_[LENN][j][k] = Buf[i+1];
-				U3_[LENN][j][k] = Buf[i+2];
-				U4_[LENN][j][k] = Buf[i+3];
-				U5_[LENN][j][k] = Buf[i+4];
-			}
-		}
-	} // end if()
-
-	// other processes
-	else {
-		// receiving from the next; if not the last process!
-		if(myid != numprocs-1) {
-			MPI_Recv(Buf, BufCountU, MPI_FLOAT, MPI_ANY_SOURCE, 99,
-						MPI_COMM_WORLD, &status);
-			for (i = 0, j = 0; j <= HIGG; j++) {
-				for (k = 0; k <= DEPP; k++, i += 5) {
-					U1_[LENN][j][k] = Buf[i  ];
-					U2_[LENN][j][k] = Buf[i+1];
-					U3_[LENN][j][k] = Buf[i+2];
-					U4_[LENN][j][k] = Buf[i+3];
-					U5_[LENN][j][k] = Buf[i+4];
-				}
-			}
-		} // end if(myid != numprocs-1)
-		// sending to previous - everyone
-		for (i = 0, j = 0; j <= HIGG; j++) {
-			for (k = 0; k <= DEPP; k++, i += 5) {
-				Buf[i  ] = U1_[1][j][k];
-				Buf[i+1] = U2_[1][j][k];
-				Buf[i+2] = U3_[1][j][k];
-				Buf[i+3] = U4_[1][j][k];
-				Buf[i+4] = U5_[1][j][k];
-			}
-		}
-		MPI_Send(Buf, BufCountU, MPI_FLOAT, previous, 99, MPI_COMM_WORLD);
-	}
-
-	// syncronization
-	MPI_Barrier(MPI_COMM_WORLD);
+  /* syncronization before communication */
+  MPI_Barrier(MPI_COMM_WORLD);
+  
+  /* sending to the previous - every process except 0th */
+  if (myid != 0)
+    MPI_Send(Bufp, BufCountU, MPI_FLOAT, previous, 99, MPI_COMM_WORLD);
+    
+  /* receiving from the next - every process except the last, (numprocs-1)th */
+  if (myid != numprocs-1)
+    MPI_Recv(nBuf, BufCountU, MPI_FLOAT, next, 99, MPI_COMM_WORLD, &status);
+    
+  /* sending to the next - every process except the last, (numprocs-1)th */
+  if (myid != numprocs-1)
+    MPI_Send(Bufn, BufCountU, MPI_FLOAT, next, 101, MPI_COMM_WORLD);
+    
+  /* receiving from the previous, every  process except 0th */ 
+  if (myid != 0)
+    MPI_Recv(pBuf, BufCountU, MPI_FLOAT, previous, 101, MPI_COMM_WORLD, &status);
+    
+  /*-- end of communicating via MPI --*/
+  
+  /*- processing received arrays -*/
+  /* every process except 0th */ 
+  if (myid != 0) {  
+    for (i = 0, j = 0; j <= HIGG; j++) {
+      for (k = 0; k <= DEPP; k++) {
+		U1_[0][j][k] = pBuf[i++];
+		U2_[0][j][k] = pBuf[i++];
+		U3_[0][j][k] = pBuf[i++];
+		U4_[0][j][k] = pBuf[i++];
+		U5_[0][j][k] = pBuf[i++];
+      }
+    }
+  }
+  /* every process except the last, (numprocs-1)th */
+  if (myid != numprocs-1) {
+    for (i = 0, j = 0; j <= HIGG; j++) {
+      for (k = 0; k <= DEPP; k++) {
+		U1_[LENN][j][k] = nBuf[i++];
+		U2_[LENN][j][k] = nBuf[i++];
+		U3_[LENN][j][k] = nBuf[i++];
+		U4_[LENN][j][k] = nBuf[i++];
+		U5_[LENN][j][k] = nBuf[i++];
+      }
+    }
+  }
+  /*--- End of communication to complete ghost cell x-layers ---*/  
 
 
 	//-- x
 	// left side inflow
 	if(0 == myid) { /* root process */
+
+		/* left side - INFLOW */
 		P = 100000.;
+		U = 76.4; /* V = 0.; W = 0.; */
 		R = 1.0;
-		for (j = 1; j < HIGG; j++) {
-			for (k = 1; k < DEPP; k++) {
-				//-- choosingcomponents of velocity 
-                // lower half				
-				if (j <= HIG/2){
-				    // always
-				    U = 76.4;
-				    // lower than disturbing block
-				    if (j <= (HIG/2 - BL_HIG)) {
-					V = 0.;
-					W = 0.;				    
-				    }
-				    // within disturbing block
-				    else {
-					if ((((j - j_base)/j_period)%2) > 0) {
-					    V = Vd; 
-					    W = Wd;
-					}
-					else {
-					    V = 0.;
-					    W = 0.;
-					}
-				    }
-				}
-				// upper half
-				else {
-				    // always
-				    U = 200.;
-				    V = 0.;
-				    W = 0.;
-				}
-				//
+		for( j = 1; j <= HIG/2; j++ ) {
+			for( k = 1; k < DEPP; k++ ) {
 				U1_[0][j][k] = R;
 				U2_[0][j][k] = R * U;
-				U3_[0][j][k] = R * V;
-				U4_[0][j][k] = R * W;
-				U5_[0][j][k] = P / K_1 + 0.5 * R * (U * U + V * V + W * W);
+				U3_[0][j][k] = 0.;/*R * V; */
+				U4_[0][j][k] = 0.;/*R * W; */
+				U5_[0][j][k] = P / K_1 + 0.5 * R * ( U * U /*+ V * V + W * W*/ );
 			}
 		}
+
+		U = 200; /* V = 0.; W = 0.; */
+		for( j = HIG/2+1; j < HIGG; j++ ) {
+			for( k = 1; k < DEPP; k++ ) {
+				U1_[0][j][k] = R;
+				U2_[0][j][k] = R * U;
+				U3_[0][j][k] = 0.;/*R * V; */
+				U4_[0][j][k] = 0.;/*R * W; */
+				U5_[0][j][k] = P / K_1 + 0.5 * R * ( U * U /*+ V * V + W * W*/ );
+			}
+		} 
 	} // end if(0 == myid)
 
 	// right side - OUTFLOW

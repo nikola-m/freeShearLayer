@@ -9,7 +9,7 @@
 /***********
 *  FLUXES  *   Fluxes at the interfaces
 ***********/
-void Fluxes( void )
+void Fluxes( int myid, int numprocs )
 {
 /*register*/ unsigned i, j, k, i_, j_, k_, i__, j__, k__;
 /*register*/ real RU; /* convective normal mass flux */
@@ -50,7 +50,7 @@ void Fluxes( void )
 
     /* Calculate the SGS viscosity for a given type fo SGS model (Smagorinsky, Dynamic Smagorinsky, Vreman, Wale) */
     if (DynamicSmagorinskySGS) {
-    	DynamicSmagorinsky(U1, U2, U3, U4, mu_SGS);
+    	DynamicSmagorinsky( U1, U2, U3, U4, mu_SGS, myid, numprocs );
     }
 
 	/*--- X-fluxes ---*/
@@ -188,7 +188,7 @@ void Fluxes( void )
 
 				if( DynamicSmagorinskySGS ){
 
-				    mu_T = mu_SGS[i_][j_][k_];
+				    mu_T = 0.5 * (mu_SGS[i_][j_][k_] + mu_SGS[i][j_][k_]);
 
 			    } else {
 
@@ -357,7 +357,7 @@ void Fluxes( void )
 
 				if( DynamicSmagorinskySGS ){
 
-				    mu_T = mu_SGS[i_][j_][k_];
+				    mu_T = 0.5 * (mu_SGS[i_][j_][k_] + mu_SGS[i][j_][k_]);
 
 			    } else {
 
@@ -528,7 +528,7 @@ void Fluxes( void )
 
 				if( DynamicSmagorinskySGS ){
 
-				    mu_T = mu_SGS[i_][j_][k_];
+				    mu_T = 0.5 * (mu_SGS[i_][j_][k_] + mu_SGS[i][j_][k_]);
 
 			    } else {
 

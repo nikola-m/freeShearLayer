@@ -50,8 +50,12 @@ extern real maxCoNum;  /* maximum Courant number */
 extern int nStages; /* number of stages of Runge-Kutta algorithm */
 
 /* MPI Buffer */
-extern real *Buf;
-extern unsigned BufCountU, BufCountF; // BufCountU > BufCountF
+// extern real *Buf;
+// extern unsigned BufCountU, BufCountF; // BufCountU > BufCountF
+
+//--- MPI buffers
+extern float *Bufp, *Bufn, *pBuf, *nBuf;
+extern int BufCountU, BufCountF; /* BufCountU > BufCountF; sizes of MPI buffers */ 
 
 extern unsigned
    step,    /* current time step */
@@ -79,7 +83,7 @@ extern int
 
 //--- for the specification of disturbed velocity blocks
 extern real
-    Va, Vd, Wd, // curent disturbed velocities
+    Ud, Vd, Wd, // curent disturbed velocities
     Ua, Va, Wa; // their amplitude values
 
 extern int

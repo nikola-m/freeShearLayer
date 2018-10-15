@@ -93,7 +93,7 @@ du_dz, dv_dz;
 	sprintf(str, "\"T\"\n");                                       MPI_File_write(fh, str, strlen(str), MPI_CHAR, &status);
 	sprintf(str, "\"Vort. mag.\"\n");                              MPI_File_write(fh, str, strlen(str), MPI_CHAR, &status);
 	sprintf(str, "\"Q-criteria.\"\n");                             MPI_File_write(fh, str, strlen(str), MPI_CHAR, &status);
-	sprintf(str, "\"muSgs\"\n");                                   MPI_File_write(fh, str, strlen(str), MPI_CHAR, &status);
+	sprintf(str, "\"muSgs-muT-ratio\"\n");                         MPI_File_write(fh, str, strlen(str), MPI_CHAR, &status);
 	sprintf(str, "zone t=\" \"\n");                                MPI_File_write(fh, str, strlen(str), MPI_CHAR, &status);
 	sprintf(str, "i=%d, j=%d, k=%d, f=point\n", LEN, HIG, DEP);    MPI_File_write(fh, str, strlen(str), MPI_CHAR, &status);
 
@@ -145,8 +145,8 @@ du_dz, dv_dz;
 
 			if (DynamicSmagorinskySGS) { 
 				muT = mu_SGS[i][j][k];
-			}else{
-				muT = R * CsDD * Strain;		
+			}else{	
+				muT = R * CsDD * Strain/mu_L;	
 			}
 
 
@@ -158,8 +158,6 @@ du_dz, dv_dz;
 	}
 	//--- close file
 	MPI_File_close(&fh);
-
-
 
 
 } // end Output()

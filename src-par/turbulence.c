@@ -5,7 +5,7 @@
 *
 */
 
-# include <stdlib.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>      /* sqrt()       */
 #include "type.h"      /*the "real" type */
@@ -13,6 +13,7 @@
 #include "global.h"    /* global variables */
 #include "helpers.h"   /* Array3D*/
 #include "turbulence.h"
+#include "communication.h"
 
 real ***filter_( real ***U, real h[3] ){
 /*
@@ -100,7 +101,7 @@ real ***filter_( real ***U, real h[3] ){
 }
 
 
-void DynamicSmagorinsky (real ***rho, real ***ru, real ***rv, real ***rw, real ***mu_SGS) {
+void DynamicSmagorinsky ( real ***rho, real ***ru, real ***rv, real ***rw, real ***mu_SGS, int myid, int numprocs ) {
 /*
  * Definition of space varying coefficient Cd in Smagirinsky SGS model using
  * the dynamic procedure of Germano and using Lilly modification.
@@ -122,6 +123,9 @@ void DynamicSmagorinsky (real ***rho, real ***ru, real ***rv, real ***rw, real *
     real MMMM;
     real LLMM;
     real rr;
+
+    // int next, previous; // processes next/previous to this
+    // MPI_Status status;
 
     real ***magStrain;
 
@@ -198,7 +202,7 @@ void DynamicSmagorinsky (real ***rho, real ***ru, real ***rv, real ***rw, real *
         for( j = 0; j < HIGG+1; j++) { 
             for( k = 0; k < DEPP+1; k++ ) {
 
-                rr = 1./rho[i][j][k];
+                rr = 1./(rho[i][j][k] + small );
 
                 u[i][j][k] = ru[i][j][k]*rr;
                 v[i][j][k] = rv[i][j][k]*rr;
@@ -444,6 +448,15 @@ void DynamicSmagorinsky (real ***rho, real ***ru, real ***rv, real ***rw, real *
         }
     }
 
+    // Exchange this field among processes.
+    // We will need to interpolate data to faces, inlcuding process boundaries,
+    // in fluxes function. So we need fresh values in ghost cells.
+    exchange( mu_SGS, myid, numprocs);
+
+
+    // Free all arrays used for this function. 
+    // Maybe allocate them as global, would save some allocation/deallocation time of the system?
+
     free3D( u,LEN+2, HIG+2  );
     free3D( v,LEN+2, HIG+2  );
     free3D( w,LEN+2, HIG+2  );
@@ -504,7 +517,8 @@ void DynamicSmagorinsky (real ***rho, real ***ru, real ***rv, real ***rw, real *
 
     free3D( magStrain,LEN+2, HIG+2  );
 
-}
+} /* End function - Dynamic Smagorinsky */
+
 
 void CalculateQCriteria(real ***rho, real ***ru, real ***rv, real ***rw, real ***Q){
 

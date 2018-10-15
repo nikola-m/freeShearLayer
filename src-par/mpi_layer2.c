@@ -64,7 +64,6 @@ real
 	// array of probes
 	*probes;
 
-
 real/* transport coefficients */
 	/* molecular */
 	mu_L, lambda_L, Pr_L,
@@ -79,8 +78,12 @@ real maxCoNum;  /* maximum Courant number */
 int nStages;    /* number of stages of Runge-Kutta algorithm */
 
 /* MPI Buffer */
-real *Buf;
-unsigned BufCountU, BufCountF; // BufCountU > BufCountF
+// real *Buf;
+// unsigned BufCountU, BufCountF; // BufCountU > BufCountF
+
+float *Bufp, *Bufn, *pBuf, *nBuf;
+int BufCountU, BufCountF;
+
 
 unsigned
    step,    /* current time step */
@@ -133,13 +136,9 @@ int main(int argc, char *argv[])
 {
 int numprocs; // number of processes
 int myid;     // identifier of _this_ process
-// int namelen;
 
 // char processor_name[MPI_MAX_PROCESSOR_NAME];
 char a;
-
-// continuation flag
-int continFlag = 1;
 
 int counter = 0;
 float totalTime = 0.;
@@ -155,6 +154,8 @@ MPI_Status status;
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
+	/*--- Get the seed of random number ---*/
+    X = 0.317391239817; // hardcoded instead of reading it from file.
 
     //-- Initializations for numerical scheme
     Initialize(myid);
@@ -165,75 +166,78 @@ MPI_Status status;
     	//-- Broadcast step from the process with the rank "root" to others
     	MPI_Bcast(&step, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    // Only root process checks single-byte record in "stopfile": 'g' or 's'
-	if(0 == myid) {
-	    MPI_File_open(MPI_COMM_SELF, "stopfile",
-			    MPI_MODE_CREATE | MPI_MODE_RDWR, MPI_INFO_NULL, &fh);
-	    MPI_File_set_view(fh, 0, MPI_CHAR, MPI_CHAR, "native", MPI_INFO_NULL);
-	    MPI_File_read(fh, &a, 1, MPI_CHAR, &status);
-	    MPI_File_close(&fh);
-	    //
-	    if (a == 's') {
-		a = 'g';
-		continFlag = 0;
-		MPI_File_open(MPI_COMM_SELF, "stopfile",
-				MPI_MODE_CREATE | MPI_MODE_RDWR,
-				MPI_INFO_NULL, &fh);
-				MPI_File_set_view(fh, 0, MPI_CHAR, MPI_CHAR,
-				"native", MPI_INFO_NULL);
-		MPI_File_write(fh, &a, 1, MPI_CHAR, &status);
-		MPI_File_close(&fh);
-	    }
-	}
+	    // Only root process checks single-byte record in "stopfile": 'g' or 's'
+		if(0 == myid) {
+		    MPI_File_open(MPI_COMM_SELF, "stopfile",
+				    MPI_MODE_CREATE | MPI_MODE_RDWR, MPI_INFO_NULL, &fh);
+		    MPI_File_set_view(fh, 0, MPI_CHAR, MPI_CHAR, "native", MPI_INFO_NULL);
+		    MPI_File_read(fh, &a, 1, MPI_CHAR, &status);
+		    MPI_File_close(&fh);
+		    //
+		    if (a == 's') {
+			a = 'g';
+			continFlag = 0;
+			MPI_File_open(MPI_COMM_SELF, "stopfile",
+					MPI_MODE_CREATE | MPI_MODE_RDWR,
+					MPI_INFO_NULL, &fh);
+					MPI_File_set_view(fh, 0, MPI_CHAR, MPI_CHAR,
+					"native", MPI_INFO_NULL);
+			MPI_File_write(fh, &a, 1, MPI_CHAR, &status);
+			MPI_File_close(&fh);
+		    }
+		}
 
-	//-- Broadcast continFlag from the process with the rank "root" to others
-	MPI_Bcast(&continFlag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+		//-- Broadcast continFlag from the process with the rank "root" to others
+		MPI_Bcast(&continFlag, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	//-- Every process may check exit conditions
-	if(step == numstep || !continFlag) break;
+		//-- Every process may check exit conditions
+		if(step == numstep || !continFlag) break;
 
-    /* Check Courant number at every timestep */
-	checkCoNum( myid );
+	    /* Check Courant number at every timestep */
+		checkCoNum( myid );
 
-	//-- root process prints current step and defines disturbances
-	if(0 == myid) {
-        fprintf(stdout, "Timestep no.: %d, total time: %f sec.\n", ++step, (totalTime+=deltaT));
-	    if (counter > 0) 
-		counter--;
-	    else {
-		counter = Ns_min + Nst * ((float)rand() / (RAND_MAX-1.));
-		Vd = Va * (1. - 2.* rand() / (RAND_MAX-1.));
-		Wd = Wa * (1. - 2.* rand() / (RAND_MAX-1.));
-		j_base = j_base_max * ((float)rand() / (RAND_MAX-1.));
-		j_period = j_period_min + j_period_maxmin * ((float)rand() / (RAND_MAX-1.));
-		fprintf(stdout, "Vd = %f, Wd = %f\n", Vd, Wd);
-	    }
-	}
+		//-- root process prints current step and defines disturbances
+		if(0 == myid) {
+	        fprintf(stdout, "Timestep no.: %d, total time: %f sec.\n", ++step, (totalTime+=deltaT));
+		    if (counter > 0) counter--;
+		    else {
+				counter = (int)( Ns_min + Nst * ( X = Random( X ) ) );
+				k_min   = (unsigned)( DEP * ( X = Random( X ) ) );
+				k_max   = (unsigned)( k_min + DEP * ( X = Random( X ) ) );
+				if( k_max > DEP ) k_max -= DEP;
+				X = Random( X ); Ud = Ua * ( 1 - X - X );
+				X = Random( X ); Vd = Va * ( 1 - X - X );
+				X = Random( X ); Wd = Wa * ( 1 - X - X );
+				printf( "k_min = %d, k_max = %d, Ud = %f, Vd = %f, Wd = %f\n", k_min, k_max, Ud, Vd, Wd );
+		    }
+		}
 
-	/*=== Go trough stages ===*/
-	for( Stage = 1; Stage <= nStages; Stage++){
+		/*=== Go trough stages ===*/
+		for( Stage = 1; Stage <= nStages; Stage++){
 
-		/*--- BC in ghost cells ---*/
-		BounCondInGhostCells( myid, numprocs );
-		/*--- Parameters at the cell boundaries ---*/
-		Reconstruction( );
-		/*--- BC at cell boundaries at the domain boundary ---*/
-		BounCondOnInterfaces( myid, numprocs );
-		/*--- Fluxes ---*/
-		Fluxes( );
-		/*--- Evolution ---*/
-		Evolution( nStages, Stage );
+			/*--- BC in ghost cells ---*/
+			BounCondInGhostCells( myid, numprocs );
+			/*--- Parameters at the cell boundaries ---*/
+			Reconstruction( );
+			/*--- BC at cell boundaries at the domain boundary ---*/
+			BounCondOnInterfaces( myid, numprocs );
+			/*--- Fluxes ---*/
+			Fluxes( myid, numprocs );
+			/*--- Evolution ---*/
+			Evolution( nStages, Stage );
 
-	}
+		}
 
-	//-- Probes output
-	Probes(myid);
+		//-- Probes output
+		Probes(myid);
 
-	//-- Take frame
-	if (step%f_step == 0 && step!=0)
-	    Output(myid);
+		//-- Take frame
+		if (step%f_step == 0 && step!=0) Output(myid);
 
     } // end while(1)
+
+	/*--- Output the flowfield ---*/
+	Output();
 
     //-- Finalize: backup the solution and close probes.* files
     Finalize(myid);
