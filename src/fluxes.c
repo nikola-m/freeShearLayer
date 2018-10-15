@@ -188,7 +188,7 @@ void Fluxes( void )
 
 				if( DynamicSmagorinskySGS ){
 
-				    mu_T = mu_SGS[i_][j_][k_];
+				    mu_T = 0.5 * (mu_SGS[i_][j_][k_] + mu_SGS[i][j_][k_]);
 
 			    } else {
 
@@ -357,7 +357,7 @@ void Fluxes( void )
 
 				if( DynamicSmagorinskySGS ){
 
-				    mu_T = mu_SGS[i_][j_][k_];
+				    mu_T = 0.5 * (mu_SGS[i_][j_][k_] + mu_SGS[i][j_][k_]);
 
 			    } else {
 
@@ -528,7 +528,7 @@ void Fluxes( void )
 
 				if( DynamicSmagorinskySGS ){
 
-				    mu_T = mu_SGS[i_][j_][k_];
+				    mu_T = 0.5 * (mu_SGS[i_][j_][k_] + mu_SGS[i][j_][k_]);
 
 			    } else {
 

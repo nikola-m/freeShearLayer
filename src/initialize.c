@@ -168,9 +168,9 @@ void Initialize( void )
 					U3[i][j][k] = 0.;/*R * V;*/
 					U4[i][j][k] = 0.;/*R * W;*/
 					U5[i][j][k] = P / K_1 + 0.5 * R * ( U * U /*+ V * V + W * W*/ );
-				} /* end for() */
-			} /* end for() */
-		} /* end for() */
+				} 
+			} 
+		} 
 		U = 200;
 		for ( i = 1; i < LENN; i++ ) {
 			for ( j = HIG/2+1; j < HIGG; j++ ) {
@@ -180,9 +180,9 @@ void Initialize( void )
 					U3[i][j][k] = 0.;/*R * V*/;
 					U4[i][j][k] = 0.;/*R * W*/;
 					U5[i][j][k] = P / K_1 + 0.5 * R * ( U * U /*+ V * V + W * W*/ );
-				} /* end for() */
-			} /* end for() */
-		} /* end for() */
+				}
+			}
+		}
 		step = 0;  /* null step number at the beginning */
 	} /* end else start new simulation */
 

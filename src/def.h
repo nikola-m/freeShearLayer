@@ -46,8 +46,8 @@
 
 #define DynamicSmagorinskySGS 1 // hardcoded option
 
-// typedef int bool;
-// #define TRUE  1
-// #define FALSE 0
+typedef int bool;
+#define TRUE  1
+#define FALSE 0
 
 #endif
