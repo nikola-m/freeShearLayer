@@ -32,4 +32,8 @@ Simulation snapshot of the Vorticity magnitude isosurface:
 
 ![Free Shear Layer Vorticity Snapshot](https://github.com/nikola-m/freeShearLayer/blob/master/vorticity-nsteps3000.png)
 
+Isosurfaces of Q criteria (Q = 5) coloured by pressure. Simulation performed in parallel on two processors:
+
+![Free Shear Layer Q-criteria Snapshot](https://github.com/nikola-m/freeShearLayer/blob/master/t2900q5prescontour.png)
+
 
